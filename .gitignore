@@ -1,0 +1,21 @@
+# Temporary files
+*.tmp
+*.bak
+*.old
+*.log
+
+# LibreOffice lock files
+.~lock.*
+~lock.*
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# macOS
+.DS_Store
+
+# Private notes
+private/
+_private/
+*.private.md
