@@ -8,8 +8,12 @@
 
 ## 現在の段階
 
-2026-06-07時点では、PKゲーム Ver0.1 をGitHub Pagesで公開する準備段階。
+2026-06-14時点で、PKゲーム Ver0.1 をGitHub Pagesで公開済み。
 
+公開URL：
+https://morio-support-lab.github.io/supporter-tools/
+
+現在は、PKゲーム Ver0.1 の公開確認後、Ver0.2候補の優先順位決め、およびトップページ改善の検討段階。
 ## 現在の構成
 
 - トップページ
