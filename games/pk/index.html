@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>非公式応援ツール集</title>
+  <title>PKゲーム</title>
   <style>
+    /* 画面全体の基本設定です。 */
     * {
       box-sizing: border-box;
     }
@@ -12,326 +13,1922 @@
     body {
       margin: 0;
       min-height: 100vh;
-      color: #172018;
-      background: #f7fbf8;
       font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
-    }
-
-    a {
-      color: inherit;
-    }
-
-    .hero {
-      border-bottom: 1px solid #d8e6dc;
+      color: #172018;
       background:
-        linear-gradient(135deg, rgba(223, 246, 220, 0.92), rgba(238, 247, 255, 0.94) 58%, rgba(255, 248, 230, 0.9));
+        linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(233, 246, 238, 0.92)),
+        linear-gradient(135deg, #d9f99d 0%, #86efac 35%, #38bdf8 100%);
     }
 
-    .hero-inner {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
-      align-items: center;
-      gap: 32px;
-      width: min(1040px, 100%);
+    .app {
+      width: min(1120px, 100%);
       margin: 0 auto;
-      padding: 48px 20px 40px;
+      padding: 24px;
     }
 
-    .label {
-      display: inline-flex;
-      align-items: center;
-      min-height: 32px;
-      margin: 0 0 14px;
-      padding: 6px 10px;
-      border: 1px solid rgba(15, 118, 110, 0.25);
-      border-radius: 999px;
-      color: #0f5f57;
-      background: rgba(255, 255, 255, 0.72);
-      font-size: 0.9rem;
-      font-weight: 800;
-    }
-
-    h1,
-    h2,
-    p {
-      margin-top: 0;
+    header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
     }
 
     h1 {
-      margin-bottom: 16px;
-      font-size: clamp(2.2rem, 8vw, 4.6rem);
-      line-height: 1.05;
+      margin: 0;
+      font-size: clamp(2rem, 6vw, 4.5rem);
+      line-height: 0.95;
       letter-spacing: 0;
     }
 
-    .lead {
-      max-width: 36rem;
-      margin-bottom: 0;
-      color: #425247;
-      font-size: clamp(1rem, 2.5vw, 1.18rem);
-      line-height: 1.8;
+    .subtitle {
+      margin: 8px 0 0;
+      font-size: 1rem;
+      color: #3f5544;
     }
 
-    .field-visual {
-      position: relative;
-      overflow: hidden;
-      min-height: 224px;
+    .reset-button,
+    .kick-button {
+      border: 0;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    .reset-button {
+      min-width: 112px;
+      padding: 12px 16px;
       border-radius: 8px;
-      background:
-        repeating-linear-gradient(90deg, #37a66b 0 48px, #2c955f 48px 96px);
-      box-shadow: 0 18px 45px rgba(29, 91, 57, 0.22);
+      color: #ffffff;
+      background: #0f766e;
+      box-shadow: 0 8px 18px rgba(15, 118, 110, 0.24);
     }
 
-    .field-visual::before {
-      content: "";
-      position: absolute;
-      inset: 18px;
-      border: 3px solid rgba(255, 255, 255, 0.8);
-      border-radius: 8px;
+    .reset-button:hover,
+    .kick-button:hover:not(:disabled) {
+      transform: translateY(-2px);
     }
 
-    .field-visual::after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 108px;
-      height: 108px;
-      transform: translate(-50%, -50%);
-      border: 3px solid rgba(255, 255, 255, 0.78);
-      border-radius: 50%;
+    .reset-button:active,
+    .kick-button:active:not(:disabled) {
+      transform: translateY(0);
     }
 
-    .goal-mark {
-      position: absolute;
-      left: 50%;
-      bottom: 18px;
-      width: 44%;
-      height: 54px;
-      transform: translateX(-50%);
-      border: 3px solid rgba(255, 255, 255, 0.84);
-      border-bottom: 0;
-      border-radius: 8px 8px 0 0;
-    }
-
-    .spot {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 12px;
-      height: 12px;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      background: #ffffff;
-      box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.22);
-    }
-
-    .content {
-      width: min(1040px, 100%);
-      margin: 0 auto;
-      padding: 34px 20px 48px;
-    }
-
-    .content-grid {
+    main {
       display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr);
-      gap: 28px;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 20px;
       align-items: start;
     }
 
-    .section-label {
-      margin-bottom: 8px;
-      color: #0f766e;
-      font-size: 0.86rem;
-      font-weight: 900;
+    .stadium {
+      position: relative;
+      overflow: hidden;
+      min-height: 620px;
+      border-radius: 8px;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0) 50%) 0 0 / 96px 100%,
+        linear-gradient(180deg, #3ca66c 0%, #20824f 100%);
+      box-shadow: 0 22px 60px rgba(20, 65, 42, 0.28);
     }
 
-    h2 {
-      margin-bottom: 14px;
-      font-size: clamp(1.35rem, 3vw, 1.75rem);
-      letter-spacing: 0;
-    }
-
-    .tool-list {
+    .crowd {
       display: grid;
-      gap: 12px;
+      grid-template-columns: repeat(24, 1fr);
+      gap: 5px;
+      height: 82px;
+      padding: 14px 18px;
+      background:
+        linear-gradient(180deg, rgba(18, 28, 43, 0.95), rgba(28, 47, 62, 0.9)),
+        #1f2937;
+    }
+
+    .crowd span {
+      display: block;
+      height: 16px;
+      border-radius: 999px 999px 6px 6px;
+      background: var(--fan-color);
+      opacity: 0.9;
+    }
+
+    .field {
+      position: relative;
+      height: 538px;
+      border-top: 5px solid rgba(255, 255, 255, 0.78);
+    }
+
+    .goal-frame {
+      position: absolute;
+      top: 28px;
+      left: 50%;
+      width: min(78%, 620px);
+      height: 210px;
+      transform: translateX(-50%);
+      border: 10px solid #f8fafc;
+      border-bottom: 0;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.28) 1px, transparent 1px) 0 0 / 38px 38px,
+        linear-gradient(180deg, rgba(255, 255, 255, 0.28) 1px, transparent 1px) 0 0 / 38px 38px,
+        rgba(12, 74, 110, 0.14);
+      box-shadow: inset 0 0 0 2px rgba(15, 23, 42, 0.08);
+    }
+
+    .goal-frame.hit {
+      animation: netShake 520ms ease;
+    }
+
+    .target-labels {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      align-items: start;
+      pointer-events: auto;
+    }
+
+    .goal-target {
+      display: grid;
+      place-items: start center;
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      padding: 12px 4px;
+      border: 0;
+      border-right: 1px solid rgba(15, 23, 42, 0.08);
+      color: rgba(15, 23, 42, 0.7);
+      font: inherit;
+      font-size: 0.86rem;
+      font-weight: 800;
+      background: rgba(255, 255, 255, 0.16);
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 160ms ease, color 160ms ease;
+    }
+
+    .goal-target:hover:not(:disabled),
+    .goal-target:focus-visible {
+      color: #0f172a;
+      background: rgba(255, 255, 255, 0.42);
+      outline: 3px solid rgba(15, 118, 110, 0.42);
+      outline-offset: -3px;
+    }
+
+    .goal-target:active:not(:disabled) {
+      background: rgba(255, 255, 255, 0.58);
+    }
+
+    .goal-target:disabled {
+      cursor: not-allowed;
+      opacity: 0.72;
+    }
+
+    .goal-target:last-child {
+      border-right: 0;
+    }
+
+    .goal-target::after {
+      content: "タップ";
+      display: block;
+      margin-top: 4px;
+      color: rgba(15, 23, 42, 0.48);
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+
+    .goal-target:disabled::after {
+      content: "";
+    }
+
+    .keeper {
+      position: absolute;
+      top: 132px;
+      left: 50%;
+      width: 92px;
+      height: 92px;
+      transform: translateX(-50%);
+      transition: left 520ms cubic-bezier(0.17, 0.67, 0.24, 1.25), transform 520ms ease;
+      z-index: 4;
+      pointer-events: none;
+      --uniform-main: #dc2626;
+      --uniform-accent: #f87171;
+      --uniform-dark: #991b1b;
+      --uniform-border: #7f1d1d;
+    }
+
+    .kicker {
+      position: absolute;
+      left: 50%;
+      bottom: 86px;
+      width: 78px;
+      height: 112px;
+      transform: translateX(-50%);
+      z-index: 4;
+      pointer-events: none;
+      --uniform-main: #2563eb;
+      --uniform-accent: #60a5fa;
+      --uniform-dark: #1e40af;
+      --uniform-border: #1e3a8a;
+    }
+
+    .keeper.saved {
+      animation: savePulse 460ms ease;
+    }
+
+    .keeper .head,
+    .keeper .body,
+    .keeper .arm,
+    .keeper .leg,
+    .kicker .head,
+    .kicker .body,
+    .kicker .arm,
+    .kicker .leg {
+      position: absolute;
+    }
+
+    .keeper .head,
+    .kicker .head {
+      top: 0;
+      left: 31px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #f6c596;
+      border: 3px solid #1f2937;
+    }
+
+    .keeper .body,
+    .kicker .body {
+      top: 30px;
+      left: 24px;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px 14px 10px 10px;
+      background: var(--uniform-main);
+      border: 3px solid var(--uniform-border);
+    }
+
+    .keeper .arm,
+    .kicker .arm {
+      top: 40px;
+      width: 40px;
+      height: 12px;
+      border-radius: 999px;
+      background: var(--uniform-accent);
+    }
+
+    .keeper .arm.left,
+    .kicker .arm.left {
+      left: -5px;
+      transform: rotate(-22deg);
+    }
+
+    .keeper .arm.right,
+    .kicker .arm.right {
+      right: -5px;
+      transform: rotate(22deg);
+    }
+
+    .keeper .leg,
+    .kicker .leg {
+      top: 70px;
+      width: 14px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--uniform-dark);
+    }
+
+    .keeper .leg.left,
+    .kicker .leg.left {
+      left: 27px;
+      transform: rotate(14deg);
+    }
+
+    .keeper .leg.right,
+    .kicker .leg.right {
+      right: 27px;
+      transform: rotate(-14deg);
+    }
+
+    .kicker .head {
+      left: 24px;
+      width: 28px;
+      height: 28px;
+    }
+
+    .kicker .body {
+      left: 18px;
+      width: 42px;
+      height: 46px;
+    }
+
+    .kicker .arm {
+      top: 43px;
+      width: 34px;
+    }
+
+    .kicker .arm.left {
+      left: 0;
+      transform: rotate(26deg);
+    }
+
+    .kicker .arm.right {
+      right: 0;
+      transform: rotate(-26deg);
+    }
+
+    .kicker .leg {
+      top: 74px;
+      height: 34px;
+    }
+
+    .kicker .leg.left {
+      left: 24px;
+      transform: rotate(-8deg);
+    }
+
+    .kicker .leg.right {
+      right: 22px;
+      transform-origin: 50% 10%;
+      transform: rotate(20deg);
+    }
+
+    .kicker.kick .leg.right {
+      animation: kickSwing 420ms ease;
+    }
+
+    .kicker.kick .body {
+      animation: kickerLean 420ms ease;
+    }
+
+    .ball {
+      position: absolute;
+      left: 50%;
+      bottom: 64px;
+      width: 42px;
+      height: 42px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 30% 30%, #ffffff 0 14%, transparent 15%),
+        radial-gradient(circle at 70% 65%, #111827 0 12%, transparent 13%),
+        radial-gradient(circle at 42% 72%, #111827 0 10%, transparent 11%),
+        #f8fafc;
+      border: 3px solid #111827;
+      box-shadow: 0 12px 20px rgba(15, 23, 42, 0.28);
+      transition: left 620ms cubic-bezier(0.15, 0.78, 0.2, 1), bottom 620ms cubic-bezier(0.15, 0.78, 0.2, 1), transform 620ms ease;
+      z-index: 5;
+      pointer-events: none;
+      --ball-goal-bottom: 355px;
+      --ball-arc-height: -58px;
+    }
+
+    .ball.shot {
+      bottom: var(--ball-goal-bottom);
+      animation: ballFlight 620ms cubic-bezier(0.15, 0.78, 0.2, 1) forwards;
+    }
+
+    .penalty-spot {
+      position: absolute;
+      left: 50%;
+      bottom: 78px;
+      width: 12px;
+      height: 12px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+    }
+
+    .pitch-lines {
+      position: absolute;
+      left: 50%;
+      bottom: -170px;
+      width: min(92%, 680px);
+      height: 360px;
+      transform: translateX(-50%);
+      border: 5px solid rgba(255, 255, 255, 0.72);
+      border-radius: 50% 50% 0 0;
+      pointer-events: none;
+    }
+
+    .message {
+      position: absolute;
+      left: 50%;
+      bottom: 16px;
+      width: min(calc(100% - 32px), 680px);
+      min-height: 54px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 16px;
+      border-radius: 8px;
+      color: #102018;
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      font-weight: 800;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+      z-index: 8;
+    }
+
+    .panel {
+      display: grid;
+      gap: 14px;
+    }
+
+    .scoreboard,
+    .controls,
+    .history {
+      padding: 16px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.86);
+      box-shadow: 0 14px 32px rgba(24, 56, 37, 0.15);
+      backdrop-filter: blur(12px);
+    }
+
+    .scoreboard {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .score-item {
+      min-height: 82px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      text-align: center;
+    }
+
+    .score-item span {
+      display: block;
+      color: #526056;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .score-item strong {
+      display: block;
+      margin-top: 6px;
+      color: #0f5132;
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .controls h2,
+    .history h2 {
+      margin: 0 0 12px;
+      font-size: 1.08rem;
+    }
+
+    .turn-status {
+      min-height: 42px;
+      margin: 0 0 12px;
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: #143023;
+      font-weight: 800;
+      background: #e7f8ed;
+      border: 1px solid rgba(22, 163, 74, 0.2);
+    }
+
+    .order-setting {
+      display: grid;
+      gap: 8px;
+      margin: 0 0 12px;
+    }
+
+    .team-setting {
+      display: grid;
+      gap: 8px;
+      margin: 0 0 12px;
+    }
+
+    .team-row {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .team-label {
+      color: #526056;
+      font-size: 0.86rem;
+      font-weight: 800;
+    }
+
+    .team-input {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: #172018;
+      background: #f8fafc;
+      font: inherit;
+      font-weight: 800;
+    }
+
+    .team-input:focus {
+      outline: 3px solid rgba(15, 118, 110, 0.26);
+      border-color: #0f766e;
+      background: #ffffff;
+    }
+
+    .team-input:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .order-label {
+      color: #526056;
+      font-size: 0.86rem;
+      font-weight: 800;
+    }
+
+    .order-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .order-button {
+      min-height: 42px;
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      border-radius: 8px;
+      color: #334155;
+      background: #f8fafc;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 900;
+      transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+    }
+
+    .order-button.active {
+      color: #ffffff;
+      background: #0f766e;
+      border-color: #0f766e;
+    }
+
+    .order-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    .order-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .uniform-setting {
+      display: grid;
+      gap: 8px;
+      margin: 0 0 12px;
+    }
+
+    .uniform-row {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .uniform-label {
+      color: #526056;
+      font-size: 0.86rem;
+      font-weight: 800;
+    }
+
+    .uniform-swatches {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 7px;
+    }
+
+    .uniform-button {
+      aspect-ratio: 1;
+      min-height: 32px;
+      border: 2px solid rgba(15, 23, 42, 0.15);
+      border-radius: 8px;
+      background: var(--swatch);
+      cursor: pointer;
+      transition: box-shadow 160ms ease, transform 160ms ease, border-color 160ms ease;
+    }
+
+    .uniform-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    .uniform-button.active {
+      border-color: #0f172a;
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.95), 0 0 0 5px rgba(15, 118, 110, 0.55);
+    }
+
+    .uniform-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .kick-button {
+      min-height: 76px;
+      padding: 10px 8px;
+      border-radius: 8px;
+      color: #ffffff;
+      background: #dc2626;
+      box-shadow: 0 10px 18px rgba(220, 38, 38, 0.22);
+    }
+
+    .kick-button:nth-child(2) {
+      background: #ca8a04;
+      box-shadow: 0 10px 18px rgba(202, 138, 4, 0.22);
+    }
+
+    .kick-button:nth-child(3) {
+      background: #7c3aed;
+      box-shadow: 0 10px 18px rgba(124, 58, 237, 0.2);
+    }
+
+    .kick-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      box-shadow: none;
+    }
+
+    .kick-button .icon {
+      display: block;
+      font-size: 1.65rem;
+      line-height: 1;
+    }
+
+    .kick-button .text {
+      display: block;
+      margin-top: 7px;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+
+    .rounds {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
       margin: 0;
       padding: 0;
       list-style: none;
     }
 
-    .tool-link {
-      display: flex;
+    .rounds li {
+      display: grid;
+      grid-template-columns: 42px 1fr 1fr;
       align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-      min-height: 96px;
-      padding: 18px 20px;
-      border: 1px solid #cfe0d5;
+      gap: 8px;
+      min-height: 48px;
+      padding: 8px;
       border-radius: 8px;
-      background: #ffffff;
-      box-shadow: 0 12px 28px rgba(24, 72, 43, 0.1);
-      text-decoration: none;
-      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
-    }
-
-    .tool-link:hover {
-      transform: translateY(-2px);
-      border-color: #0f766e;
-      box-shadow: 0 16px 34px rgba(24, 72, 43, 0.15);
-    }
-
-    .tool-link:focus-visible {
-      outline: 4px solid rgba(14, 165, 233, 0.28);
-      outline-offset: 4px;
-    }
-
-    .tool-title {
-      display: block;
-      margin-bottom: 6px;
-      color: #172018;
-      font-size: 1.12rem;
-      font-weight: 900;
-    }
-
-    .tool-description {
-      display: block;
       color: #53645a;
-      font-size: 0.94rem;
-      line-height: 1.6;
-    }
-
-    .tool-arrow {
-      display: grid;
-      flex: 0 0 42px;
-      width: 42px;
-      height: 42px;
-      place-items: center;
-      border-radius: 50%;
-      color: #ffffff;
-      background: #0f766e;
-      font-size: 1.15rem;
       font-weight: 900;
+      background: #eef2f7;
+      border: 1px solid rgba(15, 23, 42, 0.08);
     }
 
-    .notice {
-      padding: 20px;
-      border: 1px solid #d8e6dc;
-      border-top: 5px solid #0f766e;
-      border-radius: 8px;
-      background: #ffffff;
+    .round-title {
+      color: #334155;
+      font-size: 0.86rem;
+      text-align: center;
     }
 
-    .notice h2 {
-      margin-bottom: 12px;
-      font-size: 1.25rem;
-    }
-
-    .notice-list {
+    .round-side {
       display: grid;
-      gap: 10px;
-      margin: 0;
-      padding-left: 1.2rem;
-      color: #425247;
-      line-height: 1.7;
+      place-items: center;
+      min-height: 30px;
+      border-radius: 6px;
+      color: #526056;
+      background: #ffffff;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      font-size: 0.82rem;
     }
 
-    .footer-note {
-      margin: 32px 0 0;
-      padding-top: 18px;
-      border-top: 1px solid #d8e6dc;
-      color: #647168;
-      font-size: 0.9rem;
-      line-height: 1.7;
+    .round-side.scored {
+      color: #ffffff;
+      background: #16a34a;
+      border-color: #16a34a;
     }
 
-    @media (max-width: 760px) {
-      .hero-inner {
-        grid-template-columns: 1fr;
-        gap: 24px;
-        padding: 34px 18px 30px;
+    .round-side.saved {
+      color: #ffffff;
+      background: #2563eb;
+      border-color: #2563eb;
+    }
+
+    .round-side.conceded {
+      color: #ffffff;
+      background: #dc2626;
+      border-color: #dc2626;
+    }
+
+    .result {
+      margin-top: 12px;
+      min-height: 54px;
+      display: grid;
+      place-items: center;
+      padding: 10px;
+      border-radius: 8px;
+      color: #0f172a;
+      font-weight: 900;
+      text-align: center;
+      background: #f8fafc;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    @keyframes savePulse {
+      50% {
+        filter: drop-shadow(0 0 18px rgba(37, 99, 235, 0.9));
+      }
+    }
+
+    @keyframes ballFlight {
+      0% {
+        transform: translateX(-50%) translateY(0) scale(1) rotate(0deg);
+        box-shadow: 0 12px 20px rgba(15, 23, 42, 0.28);
       }
 
-      .field-visual {
-        min-height: 176px;
+      42% {
+        transform: translateX(-50%) translateY(var(--ball-arc-height)) scale(0.86) rotate(260deg);
+        box-shadow: 0 30px 28px rgba(15, 23, 42, 0.2);
       }
 
-      .content {
-        padding: 28px 18px 40px;
+      100% {
+        transform: translateX(-50%) translateY(0) scale(0.58) rotate(720deg);
+        box-shadow: 0 6px 12px rgba(15, 23, 42, 0.22);
+      }
+    }
+
+    @keyframes netShake {
+      0%,
+      100% {
+        transform: translateX(-50%);
       }
 
-      .content-grid {
-        grid-template-columns: 1fr;
-        gap: 24px;
+      25% {
+        transform: translateX(calc(-50% - 5px));
       }
 
-      .tool-link {
-        min-height: 88px;
+      50% {
+        transform: translateX(calc(-50% + 5px));
+      }
+
+      75% {
+        transform: translateX(calc(-50% - 2px));
+      }
+    }
+
+    @keyframes kickSwing {
+      0% {
+        transform: rotate(18deg);
+      }
+
+      45% {
+        transform: rotate(-54deg) translateY(-4px);
+      }
+
+      100% {
+        transform: rotate(20deg);
+      }
+    }
+
+    @keyframes kickerLean {
+      45% {
+        transform: translateX(2px) rotate(-5deg);
+      }
+    }
+
+    @media (max-width: 860px) {
+      .app {
         padding: 16px;
       }
-    }
 
-    @media (max-width: 420px) {
-      .tool-link {
-        align-items: flex-start;
+      header {
+        align-items: start;
+        flex-direction: column;
       }
 
-      .tool-arrow {
-        flex-basis: 38px;
-        width: 38px;
-        height: 38px;
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .stadium {
+        min-height: 560px;
+      }
+
+      .field {
+        height: 478px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .button-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .scoreboard {
+        grid-template-columns: 1fr;
+      }
+
+      .stadium {
+        min-height: 500px;
+      }
+
+      .field {
+        height: 418px;
+      }
+
+      .goal-frame {
+        width: 88%;
+        height: 180px;
+      }
+
+      .keeper {
+        top: 118px;
+      }
+
+      .kicker {
+        bottom: 76px;
+        transform: translateX(-50%) scale(0.88);
+      }
+
+      .ball.shot {
+        --ball-goal-bottom: 300px;
+        --ball-arc-height: -42px;
       }
     }
   </style>
 </head>
 <body>
-  <header class="hero">
-    <div class="hero-inner">
+  <div class="app">
+    <header>
       <div>
-        <p class="label">個人制作・非公式</p>
-        <h1>非公式応援ツール集</h1>
-        <p class="lead">
-          観戦まわりの小さな遊びと支援ツールを、少しずつ育てていく置き場です。
-        </p>
+        <h1>PKゲーム</h1>
+        <p class="subtitle">攻撃と守備を交互に行う、5ラウンドのPK戦。</p>
       </div>
-      <div class="field-visual" aria-hidden="true">
-        <span class="goal-mark"></span>
-        <span class="spot"></span>
-      </div>
-    </div>
-  </header>
+      <button class="reset-button" id="resetButton" type="button">リセット</button>
+    </header>
 
-  <main class="content">
-    <div class="content-grid">
-      <section aria-labelledby="published-title">
-        <p class="section-label">公開中</p>
-        <h2 id="published-title">遊べるコンテンツ</h2>
-        <ul class="tool-list">
-          <li>
-            <a class="tool-link" href="./games/pk/index.html">
-              <span>
-                <span class="tool-title">PKゲーム Ver0.1</span>
-                <span class="tool-description">5ラウンドのPK戦をブラウザだけで遊べます。</span>
-              </span>
-              <span class="tool-arrow" aria-hidden="true">&rarr;</span>
-            </a>
-          </li>
-        </ul>
+    <main>
+      <section class="stadium" aria-label="PKゲーム画面">
+        <div class="crowd" aria-hidden="true" id="crowd"></div>
+        <div class="field">
+          <div class="goal-frame" id="goalFrame">
+            <div class="target-labels" role="group" aria-label="ゴールのコースを選ぶ">
+              <button class="goal-target" type="button" data-direction="left" aria-label="左のコースを選ぶ">左</button>
+              <button class="goal-target" type="button" data-direction="center" aria-label="中央のコースを選ぶ">中央</button>
+              <button class="goal-target" type="button" data-direction="right" aria-label="右のコースを選ぶ">右</button>
+            </div>
+          </div>
+
+          <div class="keeper" id="keeper" aria-hidden="true">
+            <span class="head"></span>
+            <span class="body"></span>
+            <span class="arm left"></span>
+            <span class="arm right"></span>
+            <span class="leg left"></span>
+            <span class="leg right"></span>
+          </div>
+
+          <div class="pitch-lines" aria-hidden="true"></div>
+          <div class="penalty-spot" aria-hidden="true"></div>
+          <div class="kicker" id="kicker" aria-hidden="true">
+            <span class="head"></span>
+            <span class="body"></span>
+            <span class="arm left"></span>
+            <span class="arm right"></span>
+            <span class="leg left"></span>
+            <span class="leg right"></span>
+          </div>
+          <div class="ball" id="ball" aria-hidden="true"></div>
+          <div class="message" id="message" role="status" aria-live="polite">コースを選んでシュート！</div>
+        </div>
       </section>
 
-      <section class="notice" aria-labelledby="notice-title">
-        <h2 id="notice-title">注意</h2>
-        <ul class="notice-list">
-          <li>このサイトは個人制作の非公式サイトです。</li>
-          <li>実在のクラブ、選手、団体とは関係ありません。</li>
-          <li>公式情報は必ず公式サイトをご確認ください。</li>
-        </ul>
-      </section>
-    </div>
+      <aside class="panel">
+        <section class="scoreboard" aria-label="スコア">
+          <div class="score-item">
+            <span>ラウンド</span>
+            <strong id="roundCount">1/5</strong>
+          </div>
+          <div class="score-item">
+            <span id="playerScoreLabel">自分</span>
+            <strong id="playerScore">0</strong>
+          </div>
+          <div class="score-item">
+            <span id="opponentScoreLabel">相手</span>
+            <strong id="opponentScore">0</strong>
+          </div>
+          <div class="score-item">
+            <span>セーブ</span>
+            <strong id="saveCount">0</strong>
+          </div>
+        </section>
 
-    <p class="footer-note">
-      今後、観戦支援ツールや初観戦ガイドなども追加していく予定です。
-    </p>
-  </main>
+        <section class="controls">
+          <h2 id="controlTitle">攻撃: 蹴るコース</h2>
+          <div class="team-setting" aria-label="チーム名">
+            <span class="order-label">チーム名</span>
+            <label class="team-row">
+              <span class="team-label">自分</span>
+              <input class="team-input" id="playerNameInput" type="text" value="自分" maxlength="12" autocomplete="off">
+            </label>
+            <label class="team-row">
+              <span class="team-label">相手</span>
+              <input class="team-input" id="opponentNameInput" type="text" value="相手" maxlength="12" autocomplete="off">
+            </label>
+          </div>
+          <div class="order-setting" aria-label="先攻後攻">
+            <span class="order-label">順番</span>
+            <div class="order-buttons">
+              <button class="order-button active" type="button" data-order="first" aria-pressed="true">先攻</button>
+              <button class="order-button" type="button" data-order="second" aria-pressed="false">後攻</button>
+            </div>
+          </div>
+          <div class="uniform-setting" aria-label="ユニフォーム色">
+            <span class="order-label">ユニフォーム</span>
+            <div class="uniform-row">
+              <span class="uniform-label" id="playerUniformLabel">自分</span>
+              <div class="uniform-swatches">
+                <button class="uniform-button active" type="button" data-team="player" data-color="blue" style="--swatch: #2563eb;" aria-label="自分 青" aria-pressed="true"></button>
+                <button class="uniform-button" type="button" data-team="player" data-color="red" style="--swatch: #dc2626;" aria-label="自分 赤" aria-pressed="false"></button>
+                <button class="uniform-button" type="button" data-team="player" data-color="green" style="--swatch: #16a34a;" aria-label="自分 緑" aria-pressed="false"></button>
+                <button class="uniform-button" type="button" data-team="player" data-color="yellow" style="--swatch: #ca8a04;" aria-label="自分 黄" aria-pressed="false"></button>
+                <button class="uniform-button" type="button" data-team="player" data-color="orange" style="--swatch: #ea580c;" aria-label="自分 オレンジ" aria-pressed="false"></button>
+                <button class="uniform-button" type="button" data-team="player" data-color="purple" style="--swatch: #7c3aed;" aria-label="自分 紫" aria-pressed="false"></button>
+              </div>
+            </div>
+            <div class="uniform-row">
+              <span class="uniform-label" id="opponentUniformLabel">相手</span>
+              <div class="uniform-swatches">
+                <button class="uniform-button" type="button" data-team="opponent" data-color="blue" style="--swatch: #2563eb;" aria-label="相手 青" aria-pressed="false"></button>
+                <button class="uniform-button active" type="button" data-team="opponent" data-color="red" style="--swatch: #dc2626;" aria-label="相手 赤" aria-pressed="true"></button>
+                <button class="uniform-button" type="button" data-team="opponent" data-color="green" style="--swatch: #16a34a;" aria-label="相手 緑" aria-pressed="false"></button>
+                <button class="uniform-button" type="button" data-team="opponent" data-color="yellow" style="--swatch: #ca8a04;" aria-label="相手 黄" aria-pressed="false"></button>
+                <button class="uniform-button" type="button" data-team="opponent" data-color="orange" style="--swatch: #ea580c;" aria-label="相手 オレンジ" aria-pressed="false"></button>
+                <button class="uniform-button" type="button" data-team="opponent" data-color="purple" style="--swatch: #7c3aed;" aria-label="相手 紫" aria-pressed="false"></button>
+              </div>
+            </div>
+          </div>
+          <p class="turn-status" id="turnStatus">1R 攻撃</p>
+          <div class="button-grid">
+            <button class="kick-button" type="button" data-direction="left">
+              <span class="icon">←</span>
+              <span class="text">左</span>
+            </button>
+            <button class="kick-button" type="button" data-direction="center">
+              <span class="icon">↑</span>
+              <span class="text">中央</span>
+            </button>
+            <button class="kick-button" type="button" data-direction="right">
+              <span class="icon">→</span>
+              <span class="text">右</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="history">
+          <h2>5ラウンド</h2>
+          <ol class="rounds" id="rounds" aria-label="各ラウンドの結果">
+            <li>
+              <span class="round-title">1R</span>
+              <span class="round-side attack">攻 -</span>
+              <span class="round-side defense">守 -</span>
+            </li>
+            <li>
+              <span class="round-title">2R</span>
+              <span class="round-side attack">攻 -</span>
+              <span class="round-side defense">守 -</span>
+            </li>
+            <li>
+              <span class="round-title">3R</span>
+              <span class="round-side attack">攻 -</span>
+              <span class="round-side defense">守 -</span>
+            </li>
+            <li>
+              <span class="round-title">4R</span>
+              <span class="round-side attack">攻 -</span>
+              <span class="round-side defense">守 -</span>
+            </li>
+            <li>
+              <span class="round-title">5R</span>
+              <span class="round-side attack">攻 -</span>
+              <span class="round-side defense">守 -</span>
+            </li>
+          </ol>
+          <div class="result" id="result">まだ勝負中です</div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    // PKで選べる方向をまとめておきます。
+    const directions = ["left", "center", "right"];
+
+    // JavaScriptから何度も使うHTML要素を先に取得します。
+    const ball = document.getElementById("ball");
+    const keeper = document.getElementById("keeper");
+    const kicker = document.getElementById("kicker");
+    const goalFrame = document.getElementById("goalFrame");
+    const message = document.getElementById("message");
+    const roundCount = document.getElementById("roundCount");
+    const playerScoreLabel = document.getElementById("playerScoreLabel");
+    const opponentScoreLabel = document.getElementById("opponentScoreLabel");
+    const playerScore = document.getElementById("playerScore");
+    const opponentScore = document.getElementById("opponentScore");
+    const saveCount = document.getElementById("saveCount");
+    const playerNameInput = document.getElementById("playerNameInput");
+    const opponentNameInput = document.getElementById("opponentNameInput");
+    const playerUniformLabel = document.getElementById("playerUniformLabel");
+    const opponentUniformLabel = document.getElementById("opponentUniformLabel");
+    const controlTitle = document.getElementById("controlTitle");
+    const turnStatus = document.getElementById("turnStatus");
+    const result = document.getElementById("result");
+    const resetButton = document.getElementById("resetButton");
+    const kickButtons = document.querySelectorAll(".kick-button");
+    const goalTargetButtons = document.querySelectorAll(".goal-target");
+    const orderButtons = document.querySelectorAll(".order-button");
+    const uniformButtons = document.querySelectorAll(".uniform-button");
+    const teamNameInputs = document.querySelectorAll(".team-input");
+    const roundsList = document.getElementById("rounds");
+    const crowd = document.getElementById("crowd");
+
+    // ゲームの状態を変数で管理します。
+    let currentRound = 1;
+    let phase = "attack";
+    let playerGoals = 0;
+    let opponentGoals = 0;
+    let playerSaves = 0;
+    let playerKicks = 0;
+    let opponentKicks = 0;
+    let playerOrder = "first";
+    let playerTeamName = "自分";
+    let opponentTeamName = "相手";
+    let playerUniform = "blue";
+    let opponentUniform = "red";
+    let isAnimating = false;
+    let isWaitingForTap = false;
+    let audioContext = null;
+    const maxRounds = 5;
+    const settingsKey = "pkGameSettingsV1";
+
+    // 方向ごとの画面上の位置です。leftの値を変えると、ボールやキーパーの移動先が変わります。
+    const positions = {
+      left: "24%",
+      center: "50%",
+      right: "76%"
+    };
+
+    // 英語の方向名を、画面に出す日本語へ変換します。
+    const directionNames = {
+      left: "左",
+      center: "中央",
+      right: "右"
+    };
+
+    // ユニフォーム色ごとに、体・腕・足・ふちの色をまとめています。
+    const uniformColors = {
+      blue: {
+        main: "#2563eb",
+        accent: "#60a5fa",
+        dark: "#1e40af",
+        border: "#1e3a8a"
+      },
+      red: {
+        main: "#dc2626",
+        accent: "#f87171",
+        dark: "#991b1b",
+        border: "#7f1d1d"
+      },
+      green: {
+        main: "#16a34a",
+        accent: "#4ade80",
+        dark: "#166534",
+        border: "#14532d"
+      },
+      yellow: {
+        main: "#ca8a04",
+        accent: "#facc15",
+        dark: "#854d0e",
+        border: "#713f12"
+      },
+      orange: {
+        main: "#ea580c",
+        accent: "#fb923c",
+        dark: "#9a3412",
+        border: "#7c2d12"
+      },
+      purple: {
+        main: "#7c3aed",
+        accent: "#a78bfa",
+        dark: "#5b21b6",
+        border: "#4c1d95"
+      }
+    };
+
+    // 入力されたチーム名を表示に使える形へ整えます。
+    function sanitizeTeamName(name, fallback) {
+      const cleanName = name.trim().slice(0, 12);
+      return cleanName || fallback;
+    }
+
+    // チーム名を取り出すための小さな関数です。
+    function getTeamName(team) {
+      return team === "player" ? playerTeamName : opponentTeamName;
+    }
+
+    // ブラウザに保存してある設定を読み込みます。
+    function loadSettings() {
+      try {
+        const savedSettings = JSON.parse(localStorage.getItem(settingsKey) || "{}");
+
+        playerTeamName = sanitizeTeamName(savedSettings.playerTeamName || playerTeamName, "自分");
+        opponentTeamName = sanitizeTeamName(savedSettings.opponentTeamName || opponentTeamName, "相手");
+
+        if (savedSettings.playerOrder === "first" || savedSettings.playerOrder === "second") {
+          playerOrder = savedSettings.playerOrder;
+        }
+
+        if (uniformColors[savedSettings.playerUniform]) {
+          playerUniform = savedSettings.playerUniform;
+        }
+
+        if (uniformColors[savedSettings.opponentUniform]) {
+          opponentUniform = savedSettings.opponentUniform;
+        }
+      } catch (error) {
+        // 保存データが壊れていても、初期設定で遊べるようにします。
+      }
+    }
+
+    // 現在の設定をブラウザに保存します。
+    function saveSettings() {
+      try {
+        const settings = {
+          playerTeamName,
+          opponentTeamName,
+          playerOrder,
+          playerUniform,
+          opponentUniform
+        };
+
+        localStorage.setItem(settingsKey, JSON.stringify(settings));
+      } catch (error) {
+        // 保存できない環境でも、ゲーム自体はそのまま動かします。
+      }
+    }
+
+    // 観客席の色を少しランダムにして、画面に動きがあるようにします。
+    function createCrowd() {
+      const colors = ["#f97316", "#facc15", "#22c55e", "#38bdf8", "#e879f9", "#f8fafc"];
+      const fans = 96;
+
+      for (let i = 0; i < fans; i++) {
+        const fan = document.createElement("span");
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        fan.style.setProperty("--fan-color", color);
+        crowd.appendChild(fan);
+      }
+    }
+
+    // 配列から1つランダムに選ぶための関数です。
+    function getRandomDirection() {
+      const randomIndex = Math.floor(Math.random() * directions.length);
+      return directions[randomIndex];
+    }
+
+    // ブラウザ内蔵の音声機能を使うための準備です。
+    function getAudioContext() {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+
+      if (!AudioContextClass) {
+        return null;
+      }
+
+      if (!audioContext) {
+        audioContext = new AudioContextClass();
+      }
+
+      if (audioContext.state === "suspended") {
+        audioContext.resume();
+      }
+
+      return audioContext;
+    }
+
+    // 短い電子音を作るための共通関数です。
+    function playTone(frequency, delay, duration, type = "sine", volume = 0.18) {
+      const context = getAudioContext();
+
+      if (!context) {
+        return;
+      }
+
+      const startTime = context.currentTime + delay;
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(frequency, startTime);
+      gain.gain.setValueAtTime(0.001, startTime);
+      gain.gain.exponentialRampToValueAtTime(volume, startTime + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration + 0.03);
+    }
+
+    // ノイズを加工して、歓声やボールの衝撃音らしさを作ります。
+    function playNoise(delay, duration, volume, filterType = "lowpass", frequency = 900) {
+      const context = getAudioContext();
+
+      if (!context) {
+        return;
+      }
+
+      const sampleCount = Math.floor(context.sampleRate * duration);
+      const buffer = context.createBuffer(1, sampleCount, context.sampleRate);
+      const data = buffer.getChannelData(0);
+
+      for (let i = 0; i < sampleCount; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+
+      const startTime = context.currentTime + delay;
+      const source = context.createBufferSource();
+      const filter = context.createBiquadFilter();
+      const gain = context.createGain();
+
+      source.buffer = buffer;
+      filter.type = filterType;
+      filter.frequency.setValueAtTime(frequency, startTime);
+      gain.gain.setValueAtTime(0.001, startTime);
+      gain.gain.linearRampToValueAtTime(volume, startTime + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(context.destination);
+      source.start(startTime);
+      source.stop(startTime + duration);
+    }
+
+    // ボールを蹴った瞬間の音です。
+    function playKickSound() {
+      playTone(92, 0, 0.11, "triangle", 0.22);
+      playNoise(0, 0.08, 0.12, "lowpass", 420);
+    }
+
+    // キーパーが止めたときの音です。
+    function playSaveSound() {
+      playTone(72, 0, 0.16, "triangle", 0.2);
+      playNoise(0, 0.14, 0.16, "bandpass", 520);
+    }
+
+    // ボールがゴールやネットに入ったときの音です。
+    function playGoalInSound() {
+      playTone(180, 0, 0.16, "sine", 0.16);
+      playTone(260, 0.04, 0.12, "triangle", 0.1);
+      playNoise(0.02, 0.22, 0.12, "highpass", 850);
+    }
+
+    // ゴール後の歓声です。
+    function playCheerSound() {
+      playNoise(0, 1.25, 0.18, "bandpass", 1200);
+      playNoise(0.12, 1.1, 0.1, "lowpass", 1800);
+      playTone(520, 0.05, 0.28, "sawtooth", 0.045);
+      playTone(660, 0.18, 0.3, "sawtooth", 0.04);
+      playTone(780, 0.32, 0.32, "sawtooth", 0.035);
+    }
+
+    // 次のプレーに戻った合図のホイッスルです。
+    function playWhistleSound() {
+      playTone(1450, 0, 0.22, "sine", 0.16);
+      playTone(1850, 0.08, 0.26, "sine", 0.12);
+    }
+
+    // ボールとキーパーを最初の位置に戻します。
+    function resetActors() {
+      ball.classList.remove("shot");
+      keeper.classList.remove("saved");
+      kicker.classList.remove("kick");
+      goalFrame.classList.remove("hit");
+      ball.style.left = positions.center;
+      keeper.style.left = positions.center;
+      keeper.style.transform = "translateX(-50%)";
+    }
+
+    // キーパーの方向に合わせて、少し体を傾けます。
+    function getKeeperTransform(direction) {
+      if (direction === "center") {
+        return "translateX(-50%) scale(1.05)";
+      }
+
+      return "translateX(-50%) rotate(" + (direction === "left" ? "-18deg" : "18deg") + ")";
+    }
+
+    // ボールとキーパーを同時に動かす、共通のアニメーション処理です。
+    function animatePlay(ballDirection, keeperDirection, isSaved) {
+      playKickSound();
+
+      requestAnimationFrame(() => {
+        ball.style.left = positions[ballDirection];
+        keeper.style.left = positions[keeperDirection];
+        keeper.style.transform = getKeeperTransform(keeperDirection);
+        ball.classList.add("shot");
+        kicker.classList.add("kick");
+
+        if (isSaved) {
+          keeper.classList.add("saved");
+          setTimeout(playSaveSound, 360);
+        }
+
+        if (!isSaved) {
+          setTimeout(() => {
+            goalFrame.classList.add("hit");
+            playGoalInSound();
+          }, 380);
+
+          setTimeout(playCheerSound, 520);
+        }
+      });
+    }
+
+    // 5本目より後はサドンデスとして扱います。
+    function isSuddenDeathRound() {
+      return currentRound > maxRounds;
+    }
+
+    // 先攻なら自分の攻撃から、後攻なら自分の守備から始まります。
+    function getFirstPhase() {
+      return playerOrder === "first" ? "attack" : "defense";
+    }
+
+    // ラウンド内で2番目に行うターンです。
+    function getSecondPhase() {
+      return playerOrder === "first" ? "defense" : "attack";
+    }
+
+    // 画面に出す短いターン名です。
+    function getPhaseName(targetPhase) {
+      return targetPhase === "attack" ? "攻撃" : "守備";
+    }
+
+    // 今のターンが、そのラウンドの2番目のターンかどうかを調べます。
+    function isSecondPhaseOfRound() {
+      return phase === getSecondPhase();
+    }
+
+    // 今フィールドにいるキーパーが、自分か相手かを判定します。
+    function getDefendingTeam() {
+      return phase === "defense" ? "player" : "opponent";
+    }
+
+    // 今フィールドにいるキッカーが、自分か相手かを判定します。
+    function getAttackingTeam() {
+      return phase === "attack" ? "player" : "opponent";
+    }
+
+    // 人物アイコンの服の色を変更します。
+    function applyUniform(target, colorName) {
+      const colors = uniformColors[colorName];
+
+      target.style.setProperty("--uniform-main", colors.main);
+      target.style.setProperty("--uniform-accent", colors.accent);
+      target.style.setProperty("--uniform-dark", colors.dark);
+      target.style.setProperty("--uniform-border", colors.border);
+    }
+
+    // キーパーとキッカーの服の色を、現在のターンに合わせて反映します。
+    function updateFieldUniforms() {
+      if (phase === "finished") {
+        return;
+      }
+
+      const keeperTeam = getDefendingTeam();
+      const kickerTeam = getAttackingTeam();
+      const keeperColor = keeperTeam === "player" ? playerUniform : opponentUniform;
+      const kickerColor = kickerTeam === "player" ? playerUniform : opponentUniform;
+
+      applyUniform(keeper, keeperColor);
+      applyUniform(kicker, kickerColor);
+    }
+
+    // ラウンド名を画面表示用に作ります。6ラウンド目はSD1です。
+    function getRoundLabel(roundNumber) {
+      if (roundNumber <= maxRounds) {
+        return `${roundNumber}R`;
+      }
+
+      return `SD${roundNumber - maxRounds}`;
+    }
+
+    // ラウンド履歴の1行を作ります。サドンデスでは必要になった時点で追加します。
+    function createRoundItem(roundNumber) {
+      const item = document.createElement("li");
+      item.dataset.round = roundNumber;
+
+      const title = document.createElement("span");
+      title.className = "round-title";
+      title.textContent = getRoundLabel(roundNumber);
+
+      const attackBadge = document.createElement("span");
+      attackBadge.className = "round-side attack";
+      attackBadge.textContent = "攻 -";
+
+      const defenseBadge = document.createElement("span");
+      defenseBadge.className = "round-side defense";
+      defenseBadge.textContent = "守 -";
+
+      item.append(title, attackBadge, defenseBadge);
+      return item;
+    }
+
+    // 指定したラウンド行がなければ作って返します。
+    function ensureRoundItem(roundNumber) {
+      let item = roundsList.querySelector(`[data-round="${roundNumber}"]`);
+
+      if (!item) {
+        item = createRoundItem(roundNumber);
+        roundsList.appendChild(item);
+      }
+
+      return item;
+    }
+
+    // 最初の5ラウンドだけを表示した状態に戻します。
+    function resetRoundList() {
+      roundsList.innerHTML = "";
+
+      for (let round = 1; round <= maxRounds; round++) {
+        roundsList.appendChild(createRoundItem(round));
+      }
+    }
+
+    // 画面上のスコア表示を、現在の変数の値に合わせます。
+    function updateScoreboard() {
+      roundCount.textContent = isSuddenDeathRound()
+        ? getRoundLabel(currentRound)
+        : `${currentRound}/${maxRounds}`;
+      playerScore.textContent = playerGoals;
+      opponentScore.textContent = opponentGoals;
+      saveCount.textContent = playerSaves;
+    }
+
+    // 入力欄やラベルに、現在のチーム名を反映します。
+    function updateTeamLabels(syncInputs = true) {
+      if (syncInputs) {
+        playerNameInput.value = playerTeamName;
+        opponentNameInput.value = opponentTeamName;
+      }
+
+      playerScoreLabel.textContent = playerTeamName;
+      opponentScoreLabel.textContent = opponentTeamName;
+      playerUniformLabel.textContent = playerTeamName;
+      opponentUniformLabel.textContent = opponentTeamName;
+
+      uniformButtons.forEach((button) => {
+        const teamName = getTeamName(button.dataset.team);
+        const colorName = button.getAttribute("aria-label").split(" ").pop();
+        button.setAttribute("aria-label", `${teamName} ${colorName}`);
+      });
+    }
+
+    // 今が攻撃なのか守備なのかを、画面に表示します。
+    function updateTurnUI(shouldUpdateUniforms = true) {
+      if (phase === "attack") {
+        if (shouldUpdateUniforms) {
+          updateFieldUniforms();
+        }
+        controlTitle.textContent = "攻撃: 蹴るコース";
+        turnStatus.textContent = `${getRoundLabel(currentRound)} 攻撃: ${playerTeamName}がキッカー`;
+        return;
+      }
+
+      if (phase === "defense") {
+        if (shouldUpdateUniforms) {
+          updateFieldUniforms();
+        }
+        controlTitle.textContent = "守備: 飛ぶコース";
+        turnStatus.textContent = `${getRoundLabel(currentRound)} 守備: ${playerTeamName}がキーパー`;
+        return;
+      }
+
+      controlTitle.textContent = "PK戦終了";
+      turnStatus.textContent = "リセットで再戦できます";
+    }
+
+    // 試合が終わったかどうかで、ボタンの押せる状態を切り替えます。
+    function updateButtons() {
+      const gameFinished = phase === "finished";
+      kickButtons.forEach((button) => {
+        button.disabled = isAnimating || isWaitingForTap || gameFinished;
+      });
+      goalTargetButtons.forEach((button) => {
+        button.disabled = isAnimating || isWaitingForTap || gameFinished;
+      });
+      orderButtons.forEach((button) => {
+        button.disabled = isAnimating || isWaitingForTap;
+      });
+      uniformButtons.forEach((button) => {
+        button.disabled = isAnimating || isWaitingForTap;
+      });
+      teamNameInputs.forEach((input) => {
+        input.disabled = isAnimating || isWaitingForTap;
+      });
+    }
+
+    // 先攻/後攻ボタンの見た目を、現在の設定に合わせます。
+    function updateOrderButtons() {
+      orderButtons.forEach((button) => {
+        const isActive = button.dataset.order === playerOrder;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+    }
+
+    // ユニフォーム色ボタンの見た目を、現在の設定に合わせます。
+    function updateUniformButtons() {
+      uniformButtons.forEach((button) => {
+        const team = button.dataset.team;
+        const currentColor = team === "player" ? playerUniform : opponentUniform;
+        const isActive = button.dataset.color === currentColor;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+    }
+
+    // ラウンド表の「攻」または「守」のマスを書き換えます。
+    function markRound(side, text, className) {
+      const item = ensureRoundItem(currentRound);
+      const badge = item.querySelector("." + side);
+      badge.textContent = text;
+      badge.className = `round-side ${side} ${className}`;
+    }
+
+    // 5本以内で、残り全部を決めても追いつけないかを調べます。
+    function finishIfRegulationImpossible() {
+      if (isSuddenDeathRound()) {
+        return false;
+      }
+
+      const playerRemainingKicks = maxRounds - playerKicks;
+      const opponentRemainingKicks = maxRounds - opponentKicks;
+
+      if (playerGoals + playerRemainingKicks < opponentGoals) {
+        phase = "finished";
+        message.textContent += ` ${opponentTeamName}に追いつけないため、ここで終了です。`;
+        return true;
+      }
+
+      if (opponentGoals + opponentRemainingKicks < playerGoals) {
+        phase = "finished";
+        message.textContent += ` ${opponentTeamName}が残り全部を決めても追いつけないため、ここで終了です。`;
+        return true;
+      }
+
+      return false;
+    }
+
+    // 途中経過または最終結果の文章を表示します。
+    function updateResultText() {
+      if (phase !== "finished") {
+        result.textContent = isSuddenDeathRound()
+          ? `サドンデス ${playerGoals}-${opponentGoals}`
+          : `現在 ${playerGoals}-${opponentGoals}`;
+        return;
+      }
+
+      if (playerGoals > opponentGoals) {
+        result.textContent = `${playerGoals}-${opponentGoals} で${playerTeamName}の勝ちです。`;
+      } else if (playerGoals < opponentGoals) {
+        result.textContent = `${playerGoals}-${opponentGoals} で${opponentTeamName}の勝ちです。`;
+      } else {
+        result.textContent = `${playerGoals}-${opponentGoals} で引き分けです。`;
+      }
+    }
+
+    // 1ターン終わったあと、早期終了・次ターン・次ラウンドを判定します。
+    function advanceAfterTurn() {
+      const didFinishEarly = finishIfRegulationImpossible();
+
+      if (didFinishEarly) {
+        return;
+      }
+
+      if (!isSecondPhaseOfRound()) {
+        phase = getSecondPhase();
+        message.textContent += ` 次は${getPhaseName(phase)}です。`;
+        return;
+      }
+
+      if (isSuddenDeathRound()) {
+        if (playerGoals !== opponentGoals) {
+          phase = "finished";
+          message.textContent += " サドンデス決着です。";
+        } else {
+          currentRound++;
+          ensureRoundItem(currentRound);
+          phase = getFirstPhase();
+          message.textContent += ` 同点なので${getRoundLabel(currentRound)}へ進みます。`;
+        }
+        return;
+      }
+
+      if (currentRound >= maxRounds) {
+        if (playerGoals === opponentGoals) {
+          currentRound++;
+          ensureRoundItem(currentRound);
+          phase = getFirstPhase();
+          message.textContent += " 5本で同点。サドンデスへ進みます。";
+        } else {
+          phase = "finished";
+          message.textContent += " PK戦終了です。";
+        }
+        return;
+      }
+
+      currentRound++;
+      phase = getFirstPhase();
+      message.textContent += ` 次は${getRoundLabel(currentRound)}${getPhaseName(phase)}です。`;
+    }
+
+    // 結果表示後はタップ待ちにして、前の姿勢と色を少し残します。
+    function waitForReadyTap() {
+      isWaitingForTap = true;
+
+      if (phase === "finished") {
+        message.textContent += " 画面をタップで中央に戻ります。";
+      } else {
+        message.textContent += " 画面をタップで次へ。";
+      }
+    }
+
+    // 画面をタップしたら中央に戻し、次ターンの色へ切り替えます。
+    function readyNextTurn() {
+      if (!isWaitingForTap || isAnimating) {
+        return;
+      }
+
+      isWaitingForTap = false;
+      resetActors();
+      updateTurnUI();
+      playWhistleSound();
+
+      if (phase === "attack") {
+        message.textContent = `${getRoundLabel(currentRound)}攻撃。${playerTeamName}のコースを選んでシュート！`;
+      } else if (phase === "defense") {
+        message.textContent = `${getRoundLabel(currentRound)}守備。${playerTeamName}の飛ぶコースを選んでセーブ！`;
+      }
+
+      updateButtons();
+    }
+
+    // 攻撃ターンです。自分が選んだ方向に蹴り、相手キーパーはランダムに飛びます。
+    function playAttack(kickerDirection) {
+      isAnimating = true;
+      isWaitingForTap = false;
+      updateButtons();
+      resetActors();
+      updateFieldUniforms();
+
+      const keeperDirection = getRandomDirection();
+      const isGoal = kickerDirection !== keeperDirection;
+
+      animatePlay(kickerDirection, keeperDirection, !isGoal);
+
+      setTimeout(() => {
+        if (!isSuddenDeathRound()) {
+          playerKicks++;
+        }
+
+        if (isGoal) {
+          playerGoals++;
+          markRound("attack", "攻 G", "scored");
+          message.textContent = `ゴール！ ${directionNames[kickerDirection]}へ決まりました。`;
+        } else {
+          markRound("attack", "攻 S", "saved");
+          message.textContent = `止められた！ ${opponentTeamName}キーパーも${directionNames[keeperDirection]}へ飛びました。`;
+        }
+
+        advanceAfterTurn();
+        waitForReadyTap();
+
+        isAnimating = false;
+        updateScoreboard();
+        updateResultText();
+        updateTurnUI(false);
+        updateButtons();
+      }, 720);
+    }
+
+    // 守備ターンです。自分が選んだ方向に飛び、相手キッカーはランダムに蹴ります。
+    function playDefense(keeperDirection) {
+      isAnimating = true;
+      isWaitingForTap = false;
+      updateButtons();
+      resetActors();
+      updateFieldUniforms();
+
+      const opponentDirection = getRandomDirection();
+      const isSaved = keeperDirection === opponentDirection;
+
+      animatePlay(opponentDirection, keeperDirection, isSaved);
+
+      setTimeout(() => {
+        if (!isSuddenDeathRound()) {
+          opponentKicks++;
+        }
+
+        if (isSaved) {
+          playerSaves++;
+          markRound("defense", "守 S", "saved");
+          message.textContent = `セーブ！ ${directionNames[keeperDirection]}へ読んで止めました。`;
+        } else {
+          opponentGoals++;
+          markRound("defense", "守 G", "conceded");
+          message.textContent = `失点！ ${opponentTeamName}は${directionNames[opponentDirection]}へ蹴りました。`;
+        }
+
+        advanceAfterTurn();
+        waitForReadyTap();
+
+        isAnimating = false;
+        updateScoreboard();
+        updateResultText();
+        updateTurnUI(false);
+        updateButtons();
+      }, 720);
+    }
+
+    // ボタンを押したとき、今のターンに合わせて攻撃か守備を実行します。
+    function chooseDirection(direction) {
+      if (isAnimating || isWaitingForTap || phase === "finished") {
+        return;
+      }
+
+      if (phase === "attack") {
+        playAttack(direction);
+      } else {
+        playDefense(direction);
+      }
+    }
+
+    // すべてを初期状態に戻して、もう一度遊べるようにします。
+    function resetGame() {
+      currentRound = 1;
+      phase = getFirstPhase();
+      playerGoals = 0;
+      opponentGoals = 0;
+      playerSaves = 0;
+      playerKicks = 0;
+      opponentKicks = 0;
+      isAnimating = false;
+      isWaitingForTap = false;
+
+      resetRoundList();
+      message.textContent = phase === "attack"
+        ? `${playerTeamName}が先攻。コースを選んでシュート！`
+        : `${playerTeamName}が後攻。飛ぶコースを選んで守備！`;
+      resetActors();
+      updateTeamLabels();
+      updateScoreboard();
+      updateResultText();
+      updateTurnUI();
+      updateOrderButtons();
+      updateUniformButtons();
+      updateButtons();
+    }
+
+    // 先攻/後攻を選び直したら、その順番で最初から始めます。
+    function setPlayerOrder(order) {
+      if (isAnimating || order === playerOrder) {
+        return;
+      }
+
+      playerOrder = order;
+      saveSettings();
+      resetGame();
+    }
+
+    // チーム名を変えて、表示と保存データを更新します。
+    function setTeamName(team, name) {
+      if (isAnimating || isWaitingForTap) {
+        return;
+      }
+
+      if (team === "player") {
+        playerTeamName = sanitizeTeamName(name, "自分");
+      } else {
+        opponentTeamName = sanitizeTeamName(name, "相手");
+      }
+
+      updateTeamLabels(false);
+      updateTurnUI(false);
+      updateResultText();
+      saveSettings();
+    }
+
+    // 自分または相手のユニフォーム色を変えます。
+    function setUniformColor(team, color) {
+      if (isAnimating || isWaitingForTap) {
+        return;
+      }
+
+      if (team === "player") {
+        playerUniform = color;
+      } else {
+        opponentUniform = color;
+      }
+
+      updateUniformButtons();
+      updateFieldUniforms();
+      saveSettings();
+    }
+
+    // PC向けの方向ボタンと、ゴール内の3つのタップエリアに処理を付けます。
+    kickButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        chooseDirection(button.dataset.direction);
+      });
+    });
+
+    goalTargetButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        chooseDirection(button.dataset.direction);
+      });
+    });
+
+    // 先攻/後攻ボタンにクリック処理を付けます。
+    orderButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        setPlayerOrder(button.dataset.order);
+      });
+    });
+
+    // チーム名入力欄に入力処理を付けます。
+    playerNameInput.addEventListener("input", () => {
+      setTeamName("player", playerNameInput.value);
+    });
+
+    opponentNameInput.addEventListener("input", () => {
+      setTeamName("opponent", opponentNameInput.value);
+    });
+
+    playerNameInput.addEventListener("blur", () => {
+      playerNameInput.value = playerTeamName;
+    });
+
+    opponentNameInput.addEventListener("blur", () => {
+      opponentNameInput.value = opponentTeamName;
+    });
+
+    // ユニフォーム色ボタンにクリック処理を付けます。
+    uniformButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        setUniformColor(button.dataset.team, button.dataset.color);
+      });
+    });
+
+    // 結果が出たあと、画面をタップしたら次のターンの待機姿勢へ戻します。
+    document.addEventListener("pointerdown", (event) => {
+      if (!isWaitingForTap) {
+        return;
+      }
+
+      if (event.target.closest("#resetButton")) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      readyNextTurn();
+    }, true);
+
+    // リセットボタンにクリック処理を付けます。
+    resetButton.addEventListener("click", resetGame);
+
+    // ページを開いた直後に必要な準備をします。
+    loadSettings();
+    createCrowd();
+    resetGame();
+  </script>
 </body>
 </html>
