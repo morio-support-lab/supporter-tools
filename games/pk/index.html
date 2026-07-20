@@ -2257,3 +2257,45 @@
       startBgm();
       applyBgmVolume();
       updateBgmControls();
+            saveSettings();
+    });
+
+    // 結果が出たあと、画面をタップしたら次のターンの待機姿勢へ戻します。
+    document.addEventListener("pointerdown", (event) => {
+      if (!isWaitingForTap) {
+        return;
+      }
+
+      if (event.target.closest("#resetButton, .back-link, .audio-settings")) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      readyNextTurn();
+    }, true);
+
+    // リセットボタンにクリック処理を付けます。
+    resetButton.addEventListener("click", resetGame);
+
+    // 画面を離れるときは予約済みのBGMも停止します。
+    window.addEventListener("pagehide", stopBgm);
+    window.addEventListener("pageshow", () => {
+      if (bgmEnabled && bgmSchedulerId === null) {
+        addBgmUnlockListeners();
+      }
+    });
+
+    // ページを開いた直後に必要な準備をします。
+    loadSettings();
+    updateBgmControls();
+
+    if (bgmEnabled) {
+      addBgmUnlockListeners();
+    }
+
+    createCrowd();
+    resetGame();
+  </script>
+</body>
+</html>
