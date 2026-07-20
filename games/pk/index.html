@@ -1205,6 +1205,7 @@
     let bgmVolume = 0.25;
     let bgmMasterGain = null;
     let bgmSchedulerId = null;
+    let bgmStarting = false;
     let bgmNextStepTime = 0;
     let bgmStep = 0;
     const activeBgmSources = new Set();
@@ -1212,10 +1213,10 @@
     const settingsKey = "pkGameSettingsV1";
     const bgmStepDuration = 60 / 96 / 2;
     const bgmNotes = [
-      110, null, 110, 130.81,
-      null, 123.47, 110, null,
-      103.83, null, 110, 130.81,
-      null, 146.83, 123.47, null
+      220, null, 220, 261.63,
+      null, 246.94, 220, null,
+      207.65, null, 220, 261.63,
+      null, 293.66, 246.94, null
     ];
 
     // 方向ごとの画面上の位置です。leftの値を変えると、ボールやキーパーの移動先が変わります。
@@ -1388,7 +1389,7 @@
         return;
       }
 
-      bgmMasterGain.gain.setTargetAtTime(0.055 * bgmVolume, audioContext.currentTime, 0.03);
+      bgmMasterGain.gain.setTargetAtTime(0.09 * bgmVolume, audioContext.currentTime, 0.03);
     }
 
     // 1ステップ分の低音とアクセントを予約します。
@@ -1465,7 +1466,7 @@
 
     // ユーザー操作後に一度だけBGMを開始し、二重再生を防ぎます。
     function startBgm() {
-      if (!bgmEnabled || bgmSchedulerId !== null) {
+      if (!bgmEnabled || bgmSchedulerId !== null || bgmStarting) {
         return false;
       }
 
@@ -1475,19 +1476,43 @@
         return false;
       }
 
-      bgmMasterGain = context.createGain();
-      bgmMasterGain.connect(context.destination);
-      applyBgmVolume();
-      bgmStep = 0;
-      bgmNextStepTime = context.currentTime + 0.05;
-      scheduleBgm();
-      bgmSchedulerId = window.setInterval(scheduleBgm, 100);
-      removeBgmUnlockListeners();
+      bgmStarting = true;
+
+      const beginPlayback = () => {
+        if (!bgmEnabled || bgmSchedulerId !== null) {
+          bgmStarting = false;
+          return;
+        }
+
+        bgmMasterGain = context.createGain();
+        bgmMasterGain.gain.setValueAtTime(0.001, context.currentTime);
+        bgmMasterGain.connect(context.destination);
+        applyBgmVolume();
+        bgmStep = 0;
+        bgmNextStepTime = context.currentTime + 0.05;
+        scheduleBgm();
+        bgmSchedulerId = window.setInterval(scheduleBgm, 100);
+        bgmStarting = false;
+        removeBgmUnlockListeners();
+      };
+
+      if (context.state === "running") {
+        beginPlayback();
+      } else {
+        context.resume()
+          .then(beginPlayback)
+          .catch(() => {
+            bgmStarting = false;
+          });
+      }
+
       return true;
     }
 
     // OFF時は再生中・予約済みのBGMをすべて止めます。
     function stopBgm() {
+      bgmStarting = false;
+
       if (bgmSchedulerId !== null) {
         window.clearInterval(bgmSchedulerId);
         bgmSchedulerId = null;
@@ -2219,6 +2244,11 @@
 
     // BGMのON/OFFと音量変更を反映して保存します。
     bgmToggle.addEventListener("click", () => {
+      if (bgmEnabled && bgmSchedulerId === null) {
+        startBgm();
+        return;
+      }
+
       setBgmEnabled(!bgmEnabled);
     });
 
@@ -2227,45 +2257,3 @@
       startBgm();
       applyBgmVolume();
       updateBgmControls();
-      saveSettings();
-    });
-
-    // 結果が出たあと、画面をタップしたら次のターンの待機姿勢へ戻します。
-    document.addEventListener("pointerdown", (event) => {
-      if (!isWaitingForTap) {
-        return;
-      }
-
-      if (event.target.closest("#resetButton, .back-link, .audio-settings")) {
-        return;
-      }
-
-      event.preventDefault();
-      event.stopPropagation();
-      readyNextTurn();
-    }, true);
-
-    // リセットボタンにクリック処理を付けます。
-    resetButton.addEventListener("click", resetGame);
-
-    // 画面を離れるときは予約済みのBGMも停止します。
-    window.addEventListener("pagehide", stopBgm);
-    window.addEventListener("pageshow", () => {
-      if (bgmEnabled && bgmSchedulerId === null) {
-        addBgmUnlockListeners();
-      }
-    });
-
-    // ページを開いた直後に必要な準備をします。
-    loadSettings();
-    updateBgmControls();
-
-    if (bgmEnabled) {
-      addBgmUnlockListeners();
-    }
-
-    createCrowd();
-    resetGame();
-  </script>
-</body>
-</html>
