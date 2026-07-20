@@ -26,6 +26,38 @@
       padding: 24px;
     }
 
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      margin-bottom: 14px;
+      padding: 10px 14px;
+      border: 1px solid rgba(15, 118, 110, 0.28);
+      border-radius: 8px;
+      color: #0f5f59;
+      font-weight: 700;
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.78);
+      transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .back-link:hover {
+      transform: translateY(-1px);
+      background: #ffffff;
+      box-shadow: 0 6px 16px rgba(20, 65, 42, 0.14);
+    }
+
+    .back-link:active {
+      transform: translateY(0);
+    }
+
+    .back-link:focus-visible {
+      outline: 3px solid rgba(15, 118, 110, 0.42);
+      outline-offset: 2px;
+    }
+
     header {
       display: flex;
       align-items: end;
@@ -440,6 +472,7 @@
     }
 
     .scoreboard,
+    .audio-settings,
     .controls,
     .history {
       padding: 16px;
@@ -447,6 +480,63 @@
       background: rgba(255, 255, 255, 0.86);
       box-shadow: 0 14px 32px rgba(24, 56, 37, 0.15);
       backdrop-filter: blur(12px);
+    }
+
+    .audio-settings h2 {
+      margin: 0 0 12px;
+      font-size: 1.08rem;
+    }
+
+    .audio-setting-row {
+      display: grid;
+      grid-template-columns: 112px minmax(0, 1fr) 42px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .bgm-toggle {
+      min-height: 44px;
+      padding: 10px 12px;
+      border: 0;
+      border-radius: 8px;
+      color: #ffffff;
+      font: inherit;
+      font-weight: 800;
+      background: #0f766e;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .bgm-toggle[aria-pressed="false"] {
+      color: #334155;
+      background: #e2e8f0;
+    }
+
+    .bgm-toggle:hover {
+      filter: brightness(1.05);
+    }
+
+    .bgm-toggle:focus-visible,
+    .bgm-volume:focus-visible {
+      outline: 3px solid rgba(15, 118, 110, 0.42);
+      outline-offset: 2px;
+    }
+
+    .bgm-volume {
+      width: 100%;
+      min-height: 44px;
+      margin: 0;
+      cursor: pointer;
+      accent-color: #0f766e;
+      touch-action: manipulation;
+    }
+
+    .bgm-volume-value {
+      color: #526056;
+      font-size: 0.86rem;
+      font-weight: 800;
+      text-align: right;
     }
 
     .scoreboard {
@@ -836,12 +926,23 @@
     }
 
     @media (max-width: 520px) {
+      .back-link {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+      }
+
       .button-grid {
         grid-template-columns: 1fr;
       }
 
       .scoreboard {
         grid-template-columns: 1fr;
+      }
+
+      .audio-setting-row {
+        grid-template-columns: 104px minmax(0, 1fr) 38px;
+        gap: 8px;
       }
 
       .stadium {
@@ -875,6 +976,10 @@
 </head>
 <body>
   <div class="app">
+    <nav aria-label="サイト内ナビゲーション">
+      <a class="back-link" href="../../index.html">← 応援ツール集トップへ戻る</a>
+    </nav>
+
     <header>
       <div>
         <h1>PKゲーム</h1>
@@ -936,6 +1041,15 @@
           <div class="score-item">
             <span>セーブ</span>
             <strong id="saveCount">0</strong>
+          </div>
+        </section>
+
+        <section class="audio-settings" aria-labelledby="audioSettingsTitle">
+          <h2 id="audioSettingsTitle">サウンド</h2>
+          <div class="audio-setting-row">
+            <button class="bgm-toggle" id="bgmToggle" type="button" aria-pressed="true">BGM ON</button>
+            <input class="bgm-volume" id="bgmVolume" type="range" min="0" max="100" step="5" value="25" aria-label="BGM音量">
+            <output class="bgm-volume-value" id="bgmVolumeValue" for="bgmVolume">25%</output>
           </div>
         </section>
 
@@ -1060,6 +1174,9 @@
     const turnStatus = document.getElementById("turnStatus");
     const result = document.getElementById("result");
     const resetButton = document.getElementById("resetButton");
+    const bgmToggle = document.getElementById("bgmToggle");
+    const bgmVolumeInput = document.getElementById("bgmVolume");
+    const bgmVolumeValue = document.getElementById("bgmVolumeValue");
     const kickButtons = document.querySelectorAll(".kick-button");
     const goalTargetButtons = document.querySelectorAll(".goal-target");
     const orderButtons = document.querySelectorAll(".order-button");
@@ -1084,8 +1201,22 @@
     let isAnimating = false;
     let isWaitingForTap = false;
     let audioContext = null;
+    let bgmEnabled = true;
+    let bgmVolume = 0.25;
+    let bgmMasterGain = null;
+    let bgmSchedulerId = null;
+    let bgmNextStepTime = 0;
+    let bgmStep = 0;
+    const activeBgmSources = new Set();
     const maxRounds = 5;
     const settingsKey = "pkGameSettingsV1";
+    const bgmStepDuration = 60 / 96 / 2;
+    const bgmNotes = [
+      110, null, 110, 130.81,
+      null, 123.47, 110, null,
+      103.83, null, 110, 130.81,
+      null, 146.83, 123.47, null
+    ];
 
     // 方向ごとの画面上の位置です。leftの値を変えると、ボールやキーパーの移動先が変わります。
     const positions = {
@@ -1171,6 +1302,14 @@
         if (uniformColors[savedSettings.opponentUniform]) {
           opponentUniform = savedSettings.opponentUniform;
         }
+
+        if (typeof savedSettings.bgmEnabled === "boolean") {
+          bgmEnabled = savedSettings.bgmEnabled;
+        }
+
+        if (Number.isFinite(savedSettings.bgmVolume)) {
+          bgmVolume = Math.min(1, Math.max(0, savedSettings.bgmVolume));
+        }
       } catch (error) {
         // 保存データが壊れていても、初期設定で遊べるようにします。
       }
@@ -1184,7 +1323,9 @@
           opponentTeamName,
           playerOrder,
           playerUniform,
-          opponentUniform
+          opponentUniform,
+          bgmEnabled,
+          bgmVolume
         };
 
         localStorage.setItem(settingsKey, JSON.stringify(settings));
@@ -1229,6 +1370,175 @@
       }
 
       return audioContext;
+    }
+
+    // BGMの操作状態を画面へ反映します。
+    function updateBgmControls() {
+      const volumePercent = Math.round(bgmVolume * 100);
+      bgmToggle.textContent = bgmEnabled ? "BGM ON" : "BGM OFF";
+      bgmToggle.setAttribute("aria-pressed", bgmEnabled ? "true" : "false");
+      bgmVolumeInput.value = String(volumePercent);
+      bgmVolumeValue.value = `${volumePercent}%`;
+      bgmVolumeValue.textContent = `${volumePercent}%`;
+    }
+
+    // BGM専用の音量を、既存効果音より小さい範囲で調整します。
+    function applyBgmVolume() {
+      if (!audioContext || !bgmMasterGain) {
+        return;
+      }
+
+      bgmMasterGain.gain.setTargetAtTime(0.055 * bgmVolume, audioContext.currentTime, 0.03);
+    }
+
+    // 1ステップ分の低音とアクセントを予約します。
+    function scheduleBgmStep(stepNumber, startTime) {
+      const frequency = bgmNotes[stepNumber];
+
+      if (!frequency || !audioContext || !bgmMasterGain) {
+        return;
+      }
+
+      const oscillator = audioContext.createOscillator();
+      const filter = audioContext.createBiquadFilter();
+      const gain = audioContext.createGain();
+      const duration = bgmStepDuration * 0.78;
+
+      oscillator.type = "triangle";
+      oscillator.frequency.setValueAtTime(frequency, startTime);
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(520, startTime);
+      gain.gain.setValueAtTime(0.001, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.5, startTime + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+      oscillator.connect(filter);
+      filter.connect(gain);
+      gain.connect(bgmMasterGain);
+      activeBgmSources.add(oscillator);
+      oscillator.addEventListener("ended", () => {
+        activeBgmSources.delete(oscillator);
+        oscillator.disconnect();
+        filter.disconnect();
+        gain.disconnect();
+      });
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration + 0.03);
+
+      if (stepNumber % 4 === 0) {
+        const accent = audioContext.createOscillator();
+        const accentGain = audioContext.createGain();
+        accent.type = "sine";
+        accent.frequency.setValueAtTime(frequency * 2, startTime);
+        accentGain.gain.setValueAtTime(0.001, startTime);
+        accentGain.gain.exponentialRampToValueAtTime(0.16, startTime + 0.015);
+        accentGain.gain.exponentialRampToValueAtTime(0.001, startTime + bgmStepDuration * 0.35);
+        accent.connect(accentGain);
+        accentGain.connect(bgmMasterGain);
+        activeBgmSources.add(accent);
+        accent.addEventListener("ended", () => {
+          activeBgmSources.delete(accent);
+          accent.disconnect();
+          accentGain.disconnect();
+        });
+        accent.start(startTime);
+        accent.stop(startTime + bgmStepDuration * 0.38);
+      }
+    }
+
+    // 少し先まで音を予約し、一定のテンポで自然につながるようにします。
+    function scheduleBgm() {
+      if (!bgmEnabled || !audioContext || !bgmMasterGain) {
+        return;
+      }
+
+      if (bgmNextStepTime < audioContext.currentTime - 0.5) {
+        bgmNextStepTime = audioContext.currentTime + 0.05;
+      }
+
+      while (bgmNextStepTime < audioContext.currentTime + 0.25) {
+        scheduleBgmStep(bgmStep, bgmNextStepTime);
+        bgmStep = (bgmStep + 1) % bgmNotes.length;
+        bgmNextStepTime += bgmStepDuration;
+      }
+    }
+
+    // ユーザー操作後に一度だけBGMを開始し、二重再生を防ぎます。
+    function startBgm() {
+      if (!bgmEnabled || bgmSchedulerId !== null) {
+        return false;
+      }
+
+      const context = getAudioContext();
+
+      if (!context) {
+        return false;
+      }
+
+      bgmMasterGain = context.createGain();
+      bgmMasterGain.connect(context.destination);
+      applyBgmVolume();
+      bgmStep = 0;
+      bgmNextStepTime = context.currentTime + 0.05;
+      scheduleBgm();
+      bgmSchedulerId = window.setInterval(scheduleBgm, 100);
+      removeBgmUnlockListeners();
+      return true;
+    }
+
+    // OFF時は再生中・予約済みのBGMをすべて止めます。
+    function stopBgm() {
+      if (bgmSchedulerId !== null) {
+        window.clearInterval(bgmSchedulerId);
+        bgmSchedulerId = null;
+      }
+
+      activeBgmSources.forEach((source) => {
+        try {
+          source.stop();
+        } catch (error) {
+          // すでに停止済みでも処理を続けます。
+        }
+      });
+      activeBgmSources.clear();
+
+      if (bgmMasterGain) {
+        bgmMasterGain.disconnect();
+        bgmMasterGain = null;
+      }
+    }
+
+    // 最初の一般操作を、自動再生制限を解除するきっかけにします。
+    function handleBgmUnlock(event) {
+      if (event.target.closest && event.target.closest(".audio-settings")) {
+        return;
+      }
+
+      startBgm();
+    }
+
+    function addBgmUnlockListeners() {
+      document.addEventListener("pointerdown", handleBgmUnlock, true);
+      document.addEventListener("keydown", handleBgmUnlock, true);
+    }
+
+    function removeBgmUnlockListeners() {
+      document.removeEventListener("pointerdown", handleBgmUnlock, true);
+      document.removeEventListener("keydown", handleBgmUnlock, true);
+    }
+
+    function setBgmEnabled(enabled) {
+      bgmEnabled = enabled;
+
+      if (bgmEnabled) {
+        startBgm();
+      } else {
+        removeBgmUnlockListeners();
+        stopBgm();
+      }
+
+      updateBgmControls();
+      saveSettings();
     }
 
     // 短い電子音を作るための共通関数です。
@@ -1907,28 +2217,13 @@
       });
     });
 
-    // 結果が出たあと、画面をタップしたら次のターンの待機姿勢へ戻します。
-    document.addEventListener("pointerdown", (event) => {
-      if (!isWaitingForTap) {
-        return;
-      }
+    // BGMのON/OFFと音量変更を反映して保存します。
+    bgmToggle.addEventListener("click", () => {
+      setBgmEnabled(!bgmEnabled);
+    });
 
-      if (event.target.closest("#resetButton")) {
-        return;
-      }
-
-      event.preventDefault();
-      event.stopPropagation();
-      readyNextTurn();
-    }, true);
-
-    // リセットボタンにクリック処理を付けます。
-    resetButton.addEventListener("click", resetGame);
-
-    // ページを開いた直後に必要な準備をします。
-    loadSettings();
-    createCrowd();
-    resetGame();
-  </script>
-</body>
-</html>
+    bgmVolumeInput.addEventListener("input", () => {
+      bgmVolume = Number(bgmVolumeInput.value) / 100;
+      startBgm();
+      applyBgmVolume();
+      updateBgmControls();
