@@ -1211,12 +1211,15 @@
     const activeBgmSources = new Set();
     const maxRounds = 5;
     const settingsKey = "pkGameSettingsV1";
-    const bgmStepDuration = 60 / 96 / 2;
-    const bgmNotes = [
-      220, null, 220, 261.63,
-      null, 246.94, 220, null,
-      207.65, null, 220, 261.63,
-      null, 293.66, 246.94, null
+    const bgmStepDuration = 60 / 112 / 2;
+    const bgmPhraseSteps = 64;
+    const bgmRoots = [146.83, 116.54, 130.81, 110];
+    const bgmBassHits = new Set([0, 3, 6, 8, 11, 14]);
+    const bgmChantPatterns = [
+      { 8: 293.66, 10: 349.23, 12: 392, 14: 349.23 },
+      { 8: 293.66, 10: 349.23, 12: 440, 14: 392 },
+      { 8: 261.63, 10: 329.63, 12: 392, 14: 329.63 },
+      { 8: 329.63, 10: 293.66, 12: 261.63, 14: 220 }
     ];
 
     // 方向ごとの画面上の位置です。leftの値を変えると、ボールやキーパーの移動先が変わります。
@@ -1389,61 +1392,142 @@
         return;
       }
 
-      bgmMasterGain.gain.setTargetAtTime(0.09 * bgmVolume, audioContext.currentTime, 0.03);
+      bgmMasterGain.gain.setTargetAtTime(0.12 * bgmVolume, audioContext.currentTime, 0.03);
     }
 
-    // 1ステップ分の低音とアクセントを予約します。
-    function scheduleBgmStep(stepNumber, startTime) {
-      const frequency = bgmNotes[stepNumber];
+    // 効果音が鳴る瞬間だけBGMを下げ、プレーの音を前に出します。
+    function duckBgm(duration = 0.55, depth = 0.32) {
+      if (!audioContext || !bgmMasterGain) {
+        return;
+      }
 
-      if (!frequency || !audioContext || !bgmMasterGain) {
+      const now = audioContext.currentTime;
+      const normalVolume = Math.max(0.001, 0.12 * bgmVolume);
+      const currentVolume = Math.max(0.001, bgmMasterGain.gain.value);
+      bgmMasterGain.gain.cancelScheduledValues(now);
+      bgmMasterGain.gain.setValueAtTime(currentVolume, now);
+      bgmMasterGain.gain.exponentialRampToValueAtTime(Math.max(0.001, normalVolume * depth), now + 0.025);
+      bgmMasterGain.gain.setValueAtTime(Math.max(0.001, normalVolume * depth), now + duration);
+      bgmMasterGain.gain.exponentialRampToValueAtTime(normalVolume, now + duration + 0.22);
+    }
+
+    // BGM用の音源を追跡し、停止時に確実に片付けます。
+    function trackBgmSource(source, nodes) {
+      activeBgmSources.add(source);
+      source.addEventListener("ended", () => {
+        activeBgmSources.delete(source);
+        source.disconnect();
+        nodes.forEach((node) => node.disconnect());
+      });
+    }
+
+    // ベース、コード、チャントに共通する柔らかい電子音を予約します。
+    function scheduleBgmTone(frequency, startTime, duration, options = {}) {
+      if (!audioContext || !bgmMasterGain) {
         return;
       }
 
       const oscillator = audioContext.createOscillator();
       const filter = audioContext.createBiquadFilter();
       const gain = audioContext.createGain();
-      const duration = bgmStepDuration * 0.78;
+      const attack = Math.min(options.attack || 0.025, duration * 0.35);
 
-      oscillator.type = "triangle";
+      oscillator.type = options.type || "triangle";
       oscillator.frequency.setValueAtTime(frequency, startTime);
+      oscillator.detune.setValueAtTime(options.detune || 0, startTime);
       filter.type = "lowpass";
-      filter.frequency.setValueAtTime(520, startTime);
+      filter.frequency.setValueAtTime(options.filter || 900, startTime);
       gain.gain.setValueAtTime(0.001, startTime);
-      gain.gain.exponentialRampToValueAtTime(0.5, startTime + 0.025);
+      gain.gain.exponentialRampToValueAtTime(options.peak || 0.2, startTime + attack);
       gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
       oscillator.connect(filter);
       filter.connect(gain);
       gain.connect(bgmMasterGain);
-      activeBgmSources.add(oscillator);
-      oscillator.addEventListener("ended", () => {
-        activeBgmSources.delete(oscillator);
-        oscillator.disconnect();
-        filter.disconnect();
-        gain.disconnect();
-      });
+      trackBgmSource(oscillator, [filter, gain]);
       oscillator.start(startTime);
       oscillator.stop(startTime + duration + 0.03);
+    }
 
-      if (stepNumber % 4 === 0) {
-        const accent = audioContext.createOscillator();
-        const accentGain = audioContext.createGain();
-        accent.type = "sine";
-        accent.frequency.setValueAtTime(frequency * 2, startTime);
-        accentGain.gain.setValueAtTime(0.001, startTime);
-        accentGain.gain.exponentialRampToValueAtTime(0.16, startTime + 0.015);
-        accentGain.gain.exponentialRampToValueAtTime(0.001, startTime + bgmStepDuration * 0.35);
-        accent.connect(accentGain);
-        accentGain.connect(bgmMasterGain);
-        activeBgmSources.add(accent);
-        accent.addEventListener("ended", () => {
-          activeBgmSources.delete(accent);
-          accent.disconnect();
-          accentGain.disconnect();
-        });
-        accent.start(startTime);
-        accent.stop(startTime + bgmStepDuration * 0.38);
+    // スタンドの足踏みをイメージした低いパルスです。
+    function scheduleBgmStomp(startTime) {
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(105, startTime);
+      oscillator.frequency.exponentialRampToValueAtTime(52, startTime + 0.15);
+      gain.gain.setValueAtTime(0.001, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.34, startTime + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.18);
+      oscillator.connect(gain);
+      gain.connect(bgmMasterGain);
+      trackBgmSource(oscillator, [gain]);
+      oscillator.start(startTime);
+      oscillator.stop(startTime + 0.2);
+    }
+
+    // 観客の手拍子をイメージした短いノイズです。
+    function scheduleBgmClap(startTime) {
+      const duration = 0.075;
+      const buffer = audioContext.createBuffer(1, Math.floor(audioContext.sampleRate * duration), audioContext.sampleRate);
+      const data = buffer.getChannelData(0);
+
+      for (let i = 0; i < data.length; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+
+      const source = audioContext.createBufferSource();
+      const filter = audioContext.createBiquadFilter();
+      const gain = audioContext.createGain();
+      source.buffer = buffer;
+      filter.type = "bandpass";
+      filter.frequency.setValueAtTime(1350, startTime);
+      filter.Q.setValueAtTime(0.7, startTime);
+      gain.gain.setValueAtTime(0.11, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(bgmMasterGain);
+      trackBgmSource(source, [filter, gain]);
+      source.start(startTime);
+      source.stop(startTime + duration);
+    }
+
+    // 4小節の中で、コード、足踏み、手拍子、チャントを組み合わせます。
+    function scheduleBgmStep(stepNumber, startTime) {
+      if (!audioContext || !bgmMasterGain) {
+        return;
+      }
+
+      const bar = Math.floor(stepNumber / 16);
+      const stepInBar = stepNumber % 16;
+      const root = bgmRoots[bar];
+
+      if (stepInBar === 0) {
+        const barDuration = bgmStepDuration * 15.8;
+        scheduleBgmTone(root, startTime, barDuration, { type: "sine", peak: 0.075, attack: 0.12, filter: 650 });
+        scheduleBgmTone(root * 1.5, startTime, barDuration, { type: "triangle", peak: 0.055, attack: 0.16, filter: 780, detune: -5 });
+      }
+
+      if (bgmBassHits.has(stepInBar)) {
+        const bassFrequency = stepInBar === 14 ? root * 1.5 : root;
+        scheduleBgmTone(bassFrequency, startTime, bgmStepDuration * 0.72, { type: "triangle", peak: 0.28, filter: 520 });
+      }
+
+      if (stepInBar % 4 === 0) {
+        scheduleBgmStomp(startTime);
+      }
+
+      if (stepInBar === 4 || stepInBar === 12) {
+        scheduleBgmClap(startTime);
+      }
+
+      const chantFrequency = bgmChantPatterns[bar][stepInBar];
+      if (chantFrequency) {
+        const chantDuration = bgmStepDuration * 1.45;
+        scheduleBgmTone(chantFrequency, startTime, chantDuration, { type: "triangle", peak: 0.2, attack: 0.045, filter: 1150 });
+        scheduleBgmTone(chantFrequency / 2, startTime, chantDuration, { type: "sine", peak: 0.09, attack: 0.055, filter: 760, detune: 7 });
       }
     }
 
@@ -1459,7 +1543,7 @@
 
       while (bgmNextStepTime < audioContext.currentTime + 0.25) {
         scheduleBgmStep(bgmStep, bgmNextStepTime);
-        bgmStep = (bgmStep + 1) % bgmNotes.length;
+        bgmStep = (bgmStep + 1) % bgmPhraseSteps;
         bgmNextStepTime += bgmStepDuration;
       }
     }
@@ -1627,18 +1711,21 @@
 
     // ボールを蹴った瞬間の音です。
     function playKickSound() {
+      duckBgm(0.42, 0.28);
       playTone(92, 0, 0.11, "triangle", 0.22);
       playNoise(0, 0.08, 0.12, "lowpass", 420);
     }
 
     // キーパーが止めたときの音です。
     function playSaveSound() {
+      duckBgm(0.55, 0.24);
       playTone(72, 0, 0.16, "triangle", 0.2);
       playNoise(0, 0.14, 0.16, "bandpass", 520);
     }
 
     // ボールがゴールやネットに入ったときの音です。
     function playGoalInSound() {
+      duckBgm(0.75, 0.2);
       playTone(180, 0, 0.16, "sine", 0.16);
       playTone(260, 0.04, 0.12, "triangle", 0.1);
       playNoise(0.02, 0.22, 0.12, "highpass", 850);
@@ -1646,6 +1733,7 @@
 
     // ゴール後の歓声です。
     function playCheerSound() {
+      duckBgm(1.45, 0.18);
       playNoise(0, 1.25, 0.18, "bandpass", 1200);
       playNoise(0.12, 1.1, 0.1, "lowpass", 1800);
       playTone(520, 0.05, 0.28, "sawtooth", 0.045);
@@ -1655,6 +1743,7 @@
 
     // 次のプレーに戻った合図のホイッスルです。
     function playWhistleSound() {
+      duckBgm(0.6, 0.22);
       playTone(1450, 0, 0.22, "sine", 0.16);
       playTone(1850, 0.08, 0.26, "sine", 0.12);
     }
@@ -2257,7 +2346,7 @@
       startBgm();
       applyBgmVolume();
       updateBgmControls();
-            saveSettings();
+      saveSettings();
     });
 
     // 結果が出たあと、画面をタップしたら次のターンの待機姿勢へ戻します。
