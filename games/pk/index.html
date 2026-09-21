@@ -1203,24 +1203,16 @@
     let audioContext = null;
     let bgmEnabled = true;
     let bgmVolume = 0.25;
-    let bgmMasterGain = null;
-    let bgmSchedulerId = null;
-    let bgmStarting = false;
-    let bgmNextStepTime = 0;
-    let bgmStep = 0;
-    const activeBgmSources = new Set();
+    let bgmPlayPromise = null;
+    let bgmPlayRequestId = 0;
+    let bgmDuckFactor = 1;
+    let bgmDuckTimerId = null;
+    const bgmAudio = new Audio("./assets/audio/pk-bgm.mp3");
+    const bgmMaxVolume = 0.4;
     const maxRounds = 5;
     const settingsKey = "pkGameSettingsV1";
-    const bgmStepDuration = 60 / 112 / 2;
-    const bgmPhraseSteps = 64;
-    const bgmRoots = [146.83, 116.54, 130.81, 110];
-    const bgmBassHits = new Set([0, 3, 6, 8, 11, 14]);
-    const bgmChantPatterns = [
-      { 8: 293.66, 10: 349.23, 12: 392, 14: 349.23 },
-      { 8: 293.66, 10: 349.23, 12: 440, 14: 392 },
-      { 8: 261.63, 10: 329.63, 12: 392, 14: 329.63 },
-      { 8: 329.63, 10: 293.66, 12: 261.63, 14: 220 }
-    ];
+    bgmAudio.loop = true;
+    bgmAudio.preload = "auto";
 
     // 方向ごとの画面上の位置です。leftの値を変えると、ボールやキーパーの移動先が変わります。
     const positions = {
@@ -1388,233 +1380,85 @@
 
     // BGM専用の音量を、既存効果音より小さい範囲で調整します。
     function applyBgmVolume() {
-      if (!audioContext || !bgmMasterGain) {
-        return;
-      }
-
-      bgmMasterGain.gain.setTargetAtTime(0.12 * bgmVolume, audioContext.currentTime, 0.03);
+      bgmAudio.volume = Math.min(1, bgmMaxVolume * bgmVolume * bgmDuckFactor);
     }
 
     // 効果音が鳴る瞬間だけBGMを下げ、プレーの音を前に出します。
     function duckBgm(duration = 0.55, depth = 0.32) {
-      if (!audioContext || !bgmMasterGain) {
-        return;
+      if (bgmDuckTimerId !== null) {
+        window.clearTimeout(bgmDuckTimerId);
       }
 
-      const now = audioContext.currentTime;
-      const normalVolume = Math.max(0.001, 0.12 * bgmVolume);
-      const currentVolume = Math.max(0.001, bgmMasterGain.gain.value);
-      bgmMasterGain.gain.cancelScheduledValues(now);
-      bgmMasterGain.gain.setValueAtTime(currentVolume, now);
-      bgmMasterGain.gain.exponentialRampToValueAtTime(Math.max(0.001, normalVolume * depth), now + 0.025);
-      bgmMasterGain.gain.setValueAtTime(Math.max(0.001, normalVolume * depth), now + duration);
-      bgmMasterGain.gain.exponentialRampToValueAtTime(normalVolume, now + duration + 0.22);
-    }
-
-    // BGM用の音源を追跡し、停止時に確実に片付けます。
-    function trackBgmSource(source, nodes) {
-      activeBgmSources.add(source);
-      source.addEventListener("ended", () => {
-        activeBgmSources.delete(source);
-        source.disconnect();
-        nodes.forEach((node) => node.disconnect());
-      });
-    }
-
-    // ベース、コード、チャントに共通する柔らかい電子音を予約します。
-    function scheduleBgmTone(frequency, startTime, duration, options = {}) {
-      if (!audioContext || !bgmMasterGain) {
-        return;
-      }
-
-      const oscillator = audioContext.createOscillator();
-      const filter = audioContext.createBiquadFilter();
-      const gain = audioContext.createGain();
-      const attack = Math.min(options.attack || 0.025, duration * 0.35);
-
-      oscillator.type = options.type || "triangle";
-      oscillator.frequency.setValueAtTime(frequency, startTime);
-      oscillator.detune.setValueAtTime(options.detune || 0, startTime);
-      filter.type = "lowpass";
-      filter.frequency.setValueAtTime(options.filter || 900, startTime);
-      gain.gain.setValueAtTime(0.001, startTime);
-      gain.gain.exponentialRampToValueAtTime(options.peak || 0.2, startTime + attack);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
-      oscillator.connect(filter);
-      filter.connect(gain);
-      gain.connect(bgmMasterGain);
-      trackBgmSource(oscillator, [filter, gain]);
-      oscillator.start(startTime);
-      oscillator.stop(startTime + duration + 0.03);
-    }
-
-    // スタンドの足踏みをイメージした低いパルスです。
-    function scheduleBgmStomp(startTime) {
-      const oscillator = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-
-      oscillator.type = "sine";
-      oscillator.frequency.setValueAtTime(105, startTime);
-      oscillator.frequency.exponentialRampToValueAtTime(52, startTime + 0.15);
-      gain.gain.setValueAtTime(0.001, startTime);
-      gain.gain.exponentialRampToValueAtTime(0.34, startTime + 0.008);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.18);
-      oscillator.connect(gain);
-      gain.connect(bgmMasterGain);
-      trackBgmSource(oscillator, [gain]);
-      oscillator.start(startTime);
-      oscillator.stop(startTime + 0.2);
-    }
-
-    // 観客の手拍子をイメージした短いノイズです。
-    function scheduleBgmClap(startTime) {
-      const duration = 0.075;
-      const buffer = audioContext.createBuffer(1, Math.floor(audioContext.sampleRate * duration), audioContext.sampleRate);
-      const data = buffer.getChannelData(0);
-
-      for (let i = 0; i < data.length; i++) {
-        data[i] = Math.random() * 2 - 1;
-      }
-
-      const source = audioContext.createBufferSource();
-      const filter = audioContext.createBiquadFilter();
-      const gain = audioContext.createGain();
-      source.buffer = buffer;
-      filter.type = "bandpass";
-      filter.frequency.setValueAtTime(1350, startTime);
-      filter.Q.setValueAtTime(0.7, startTime);
-      gain.gain.setValueAtTime(0.11, startTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-      source.connect(filter);
-      filter.connect(gain);
-      gain.connect(bgmMasterGain);
-      trackBgmSource(source, [filter, gain]);
-      source.start(startTime);
-      source.stop(startTime + duration);
-    }
-
-    // 4小節の中で、コード、足踏み、手拍子、チャントを組み合わせます。
-    function scheduleBgmStep(stepNumber, startTime) {
-      if (!audioContext || !bgmMasterGain) {
-        return;
-      }
-
-      const bar = Math.floor(stepNumber / 16);
-      const stepInBar = stepNumber % 16;
-      const root = bgmRoots[bar];
-
-      if (stepInBar === 0) {
-        const barDuration = bgmStepDuration * 15.8;
-        scheduleBgmTone(root, startTime, barDuration, { type: "sine", peak: 0.075, attack: 0.12, filter: 650 });
-        scheduleBgmTone(root * 1.5, startTime, barDuration, { type: "triangle", peak: 0.055, attack: 0.16, filter: 780, detune: -5 });
-      }
-
-      if (bgmBassHits.has(stepInBar)) {
-        const bassFrequency = stepInBar === 14 ? root * 1.5 : root;
-        scheduleBgmTone(bassFrequency, startTime, bgmStepDuration * 0.72, { type: "triangle", peak: 0.28, filter: 520 });
-      }
-
-      if (stepInBar % 4 === 0) {
-        scheduleBgmStomp(startTime);
-      }
-
-      if (stepInBar === 4 || stepInBar === 12) {
-        scheduleBgmClap(startTime);
-      }
-
-      const chantFrequency = bgmChantPatterns[bar][stepInBar];
-      if (chantFrequency) {
-        const chantDuration = bgmStepDuration * 1.45;
-        scheduleBgmTone(chantFrequency, startTime, chantDuration, { type: "triangle", peak: 0.2, attack: 0.045, filter: 1150 });
-        scheduleBgmTone(chantFrequency / 2, startTime, chantDuration, { type: "sine", peak: 0.09, attack: 0.055, filter: 760, detune: 7 });
-      }
-    }
-
-    // 少し先まで音を予約し、一定のテンポで自然につながるようにします。
-    function scheduleBgm() {
-      if (!bgmEnabled || !audioContext || !bgmMasterGain) {
-        return;
-      }
-
-      if (bgmNextStepTime < audioContext.currentTime - 0.5) {
-        bgmNextStepTime = audioContext.currentTime + 0.05;
-      }
-
-      while (bgmNextStepTime < audioContext.currentTime + 0.25) {
-        scheduleBgmStep(bgmStep, bgmNextStepTime);
-        bgmStep = (bgmStep + 1) % bgmPhraseSteps;
-        bgmNextStepTime += bgmStepDuration;
-      }
-    }
-
-    // ユーザー操作後に一度だけBGMを開始し、二重再生を防ぎます。
-    function startBgm() {
-      if (!bgmEnabled || bgmSchedulerId !== null || bgmStarting) {
-        return false;
-      }
-
-      const context = getAudioContext();
-
-      if (!context) {
-        return false;
-      }
-
-      bgmStarting = true;
-
-      const beginPlayback = () => {
-        if (!bgmEnabled || bgmSchedulerId !== null) {
-          bgmStarting = false;
-          return;
-        }
-
-        bgmMasterGain = context.createGain();
-        bgmMasterGain.gain.setValueAtTime(0.001, context.currentTime);
-        bgmMasterGain.connect(context.destination);
+      bgmDuckFactor = depth;
+      applyBgmVolume();
+      bgmDuckTimerId = window.setTimeout(() => {
+        bgmDuckFactor = 1;
+        bgmDuckTimerId = null;
         applyBgmVolume();
-        bgmStep = 0;
-        bgmNextStepTime = context.currentTime + 0.05;
-        scheduleBgm();
-        bgmSchedulerId = window.setInterval(scheduleBgm, 100);
-        bgmStarting = false;
-        removeBgmUnlockListeners();
-      };
+      }, duration * 1000);
+    }
 
-      if (context.state === "running") {
-        beginPlayback();
-      } else {
-        context.resume()
-          .then(beginPlayback)
-          .catch(() => {
-            bgmStarting = false;
-          });
+    // ユーザー操作後にローカル音源を一度だけ再生し、二重再生を防ぎます。
+    function startBgm() {
+      if (!bgmEnabled || !bgmAudio.paused || bgmPlayPromise) {
+        return false;
       }
+
+      applyBgmVolume();
+      const requestId = ++bgmPlayRequestId;
+      let playResult;
+
+      try {
+        playResult = bgmAudio.play();
+      } catch (error) {
+        addBgmUnlockListeners();
+        return false;
+      }
+
+      const playPromise = Promise.resolve(playResult);
+      bgmPlayPromise = playPromise;
+      playPromise
+        .then(() => {
+          if (requestId !== bgmPlayRequestId) {
+            return;
+          }
+
+          if (!bgmEnabled) {
+            bgmAudio.pause();
+            bgmAudio.currentTime = 0;
+            return;
+          }
+
+          removeBgmUnlockListeners();
+        })
+        .catch(() => {
+          if (requestId === bgmPlayRequestId && bgmEnabled) {
+            addBgmUnlockListeners();
+          }
+        })
+        .finally(() => {
+          if (bgmPlayPromise === playPromise) {
+            bgmPlayPromise = null;
+          }
+        });
 
       return true;
     }
 
-    // OFF時は再生中・予約済みのBGMをすべて止めます。
+    // OFF時はローカルBGMを確実に停止し、次回は先頭から再生します。
     function stopBgm() {
-      bgmStarting = false;
+      bgmPlayRequestId++;
+      bgmPlayPromise = null;
+      bgmAudio.pause();
+      bgmAudio.currentTime = 0;
 
-      if (bgmSchedulerId !== null) {
-        window.clearInterval(bgmSchedulerId);
-        bgmSchedulerId = null;
+      if (bgmDuckTimerId !== null) {
+        window.clearTimeout(bgmDuckTimerId);
+        bgmDuckTimerId = null;
       }
 
-      activeBgmSources.forEach((source) => {
-        try {
-          source.stop();
-        } catch (error) {
-          // すでに停止済みでも処理を続けます。
-        }
-      });
-      activeBgmSources.clear();
-
-      if (bgmMasterGain) {
-        bgmMasterGain.disconnect();
-        bgmMasterGain = null;
-      }
+      bgmDuckFactor = 1;
+      applyBgmVolume();
     }
 
     // 最初の一般操作を、自動再生制限を解除するきっかけにします。
@@ -2333,7 +2177,7 @@
 
     // BGMのON/OFFと音量変更を反映して保存します。
     bgmToggle.addEventListener("click", () => {
-      if (bgmEnabled && bgmSchedulerId === null) {
+      if (bgmEnabled && bgmAudio.paused) {
         startBgm();
         return;
       }
@@ -2367,10 +2211,10 @@
     // リセットボタンにクリック処理を付けます。
     resetButton.addEventListener("click", resetGame);
 
-    // 画面を離れるときは予約済みのBGMも停止します。
+    // 画面を離れるときはBGMを停止します。
     window.addEventListener("pagehide", stopBgm);
     window.addEventListener("pageshow", () => {
-      if (bgmEnabled && bgmSchedulerId === null) {
+      if (bgmEnabled && bgmAudio.paused) {
         addBgmUnlockListeners();
       }
     });
