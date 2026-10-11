@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="街で見つけたAC長野パルセイロ応援自販機を記録する、個人制作の非公式一覧ページです。">
+  <title>パルセイロ応援自販機</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: #172018;
+      background: #f7fbf8;
+      font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    a:focus-visible {
+      outline: 4px solid rgba(14, 165, 233, 0.28);
+      outline-offset: 4px;
+      border-radius: 4px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    .hero {
+      border-bottom: 1px solid #d8e6dc;
+      background:
+        linear-gradient(135deg, rgba(223, 246, 220, 0.92), rgba(238, 247, 255, 0.94) 58%, rgba(255, 248, 230, 0.9));
+    }
+
+    .hero-inner {
+      width: min(1040px, 100%);
+      margin: 0 auto;
+      padding: 24px 20px 40px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      color: #0f5f57;
+      font-size: 0.94rem;
+      font-weight: 700;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+    }
+
+    .back-link:hover {
+      color: #172018;
+    }
+
+    .hero nav {
+      margin-bottom: 20px;
+    }
+
+    .label {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      margin: 0 0 14px;
+      padding: 6px 10px;
+      border: 1px solid rgba(15, 118, 110, 0.25);
+      border-radius: 999px;
+      color: #0f5f57;
+      background: rgba(255, 255, 255, 0.72);
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+
+    h1 {
+      margin-bottom: 16px;
+      font-size: clamp(2rem, 5.5vw, 3.4rem);
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      margin-bottom: 0;
+      color: #425247;
+      font-size: clamp(1rem, 2.5vw, 1.18rem);
+      line-height: 1.8;
+    }
+
+    .content {
+      width: min(1040px, 100%);
+      margin: 0 auto;
+      padding: 34px 20px 48px;
+    }
+
+    .section-label {
+      margin-bottom: 8px;
+      color: #0f766e;
+      font-size: 0.86rem;
+      font-weight: 900;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      font-size: clamp(1.35rem, 3vw, 1.75rem);
+      line-height: 1.5;
+    }
+
+    .spot-list {
+      display: grid;
+      gap: 28px;
+    }
+
+    .spot-card {
+      min-width: 0;
+      padding: 24px;
+      border: 1px solid #cfe0d5;
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: 0 12px 28px rgba(24, 72, 43, 0.1);
+    }
+
+    .spot-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px 24px;
+      margin-bottom: 18px;
+    }
+
+    .entry-label {
+      margin-bottom: 6px;
+      color: #0f766e;
+      font-size: 0.86rem;
+      font-weight: 900;
+    }
+
+    h3 {
+      margin-bottom: 8px;
+      font-size: clamp(1.35rem, 3vw, 1.75rem);
+      line-height: 1.5;
+    }
+
+    .machine-name {
+      margin-bottom: 0;
+      color: #425247;
+      font-weight: 700;
+    }
+
+    .photo-date {
+      display: grid;
+      gap: 2px;
+      margin-bottom: 0;
+      padding: 10px 14px;
+      border: 1px solid #d8e6dc;
+      border-radius: 8px;
+      color: #425247;
+      background: #f7fbf8;
+      font-size: 0.9rem;
+    }
+
+    .photo-date time {
+      color: #172018;
+      font-weight: 700;
+    }
+
+    .spot-details {
+      display: grid;
+      gap: 6px;
+      margin: 0 0 24px;
+      padding-left: 1.2rem;
+      color: #425247;
+    }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+      align-items: start;
+    }
+
+    .photo-grid figure {
+      min-width: 0;
+      margin: 0;
+    }
+
+    .photo-grid img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      background: #f7fbf8;
+    }
+
+    .photo-grid figcaption {
+      margin-top: 10px;
+      color: #53645a;
+      font-size: 0.94rem;
+      line-height: 1.7;
+    }
+
+    .notice {
+      margin-top: 32px;
+      padding: 20px;
+      border: 1px solid #d8e6dc;
+      border-top: 5px solid #0f766e;
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .notice h2 {
+      margin-bottom: 12px;
+      font-size: 1.25rem;
+    }
+
+    .notice p {
+      margin-bottom: 0;
+      color: #425247;
+    }
+
+    .footer-nav {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid #d8e6dc;
+    }
+
+    @media (max-width: 760px) {
+      .hero-inner {
+        padding: 18px 18px 30px;
+      }
+
+      .hero nav {
+        margin-bottom: 16px;
+      }
+
+      .content {
+        padding: 28px 18px 40px;
+      }
+
+      .spot-card {
+        padding: 18px;
+      }
+
+      .photo-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 24px;
+      }
+
+      .notice {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <nav aria-label="トップページへのナビゲーション">
+        <a class="back-link" href="../../index.html">← 応援ツール集トップへ戻る</a>
+      </nav>
+      <p class="label">個人制作・非公式</p>
+      <h1>パルセイロ応援自販機</h1>
+      <p class="lead">街で見つけたAC長野パルセイロ応援自販機を記録しています。</p>
+    </div>
+  </header>
+
+  <main class="content">
+    <section aria-labelledby="spots-title">
+      <p class="section-label">街の記録</p>
+      <h2 id="spots-title">見つけた応援自販機</h2>
+      <div class="spot-list">
+        <!-- 設置場所を追加する場合は、以下の article.spot-card を複製してください。
+             見出しの id と aria-labelledby を固有の値にし、掲載情報・日付・写真を変更します。
+             写真の width / height には元画像の寸法を指定してください。 -->
+        <article class="spot-card" aria-labelledby="aeon-suzaka-title">
+          <div class="spot-header">
+            <div>
+              <p class="entry-label">第1号</p>
+              <h3 id="aeon-suzaka-title">イオンモール須坂</h3>
+              <p class="machine-name">AC長野パルセイロ応援自販機</p>
+            </div>
+            <p class="photo-date">
+              <span>撮影日</span>
+              <time datetime="2026-10-04">2026年10月4日</time>
+            </p>
+          </div>
+          <ul class="spot-details">
+            <li>店舗入口付近に設置</li>
+            <li>信州ブレイブウォリアーズ、VC長野トライデンツの自販機と並んでいる</li>
+          </ul>
+          <div class="photo-grid">
+            <figure>
+              <img src="./assets/images/aeon-suzaka-01.jpg" width="3072" height="4080" decoding="async" alt="イオンモール須坂の店舗入口付近に並ぶ、信州ブレイブウォリアーズ、VC長野トライデンツ、AC長野パルセイロの自販機3台">
+              <figcaption>店舗入口付近に並ぶ応援自販機3台。右側がAC長野パルセイロの自販機です。</figcaption>
+            </figure>
+            <figure>
+              <img src="./assets/images/aeon-suzaka-02.jpg" width="3072" height="4080" loading="lazy" decoding="async" alt="AC長野パルセイロ応援自販機のアップ写真">
+              <figcaption>AC長野パルセイロ応援自販機のアップ。</figcaption>
+            </figure>
+          </div>
+        </article>
+        <article class="spot-card" aria-labelledby="fujimori-kensetsu-title">
+          <div class="spot-header">
+            <div>
+              <p class="entry-label">第2号</p>
+              <h3 id="fujimori-kensetsu-title">藤森建設工業</h3>
+              <p class="machine-name">建物入口横に設置されているAC長野パルセイロ応援自販機です。</p>
+            </div>
+            <p class="photo-date">
+              <span>掲載日</span>
+              <time datetime="2026-09-06">2026年9月6日</time>
+            </p>
+          </div>
+          <ul class="spot-details">
+            <li>建物入口横に設置</li>
+            <li>掲示部分に「藤森建設工業はAC長野パルセイロを応援しています」と表示</li>
+          </ul>
+          <div class="photo-grid">
+            <figure>
+              <img src="./assets/images/fujimori-kensetsu-01.jpg" width="1920" height="1920" loading="lazy" decoding="async" alt="藤森建設工業の建物入口と、その横に設置されているAC長野パルセイロ応援自販機">
+              <figcaption>建物入口と自販機の設置場所が分かる引きの写真。</figcaption>
+            </figure>
+            <figure>
+              <img src="./assets/images/fujimori-kensetsu-02.jpg" width="3072" height="4080" loading="lazy" decoding="async" alt="藤森建設工業の応援メッセージとAC長野パルセイロのデザインが見える自販機のアップ写真">
+              <figcaption>AC長野パルセイロ応援自販機のアップ。掲示部分には「藤森建設工業はAC長野パルセイロを応援しています」と表示されています。</figcaption>
+            </figure>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <aside class="notice" aria-labelledby="notice-title">
+      <h2 id="notice-title">ご利用にあたって</h2>
+      <p>このページは個人制作の非公式情報です。クラブ、施設、その他の関係団体とは関係ありません。設置状況は変更される場合があります。</p>
+    </aside>
+
+    <nav class="footer-nav" aria-label="ページ末尾のナビゲーション">
+      <a class="back-link" href="../../index.html">← 応援ツール集トップへ戻る</a>
+    </nav>
+  </main>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "845b4dd1498f44808104c60630fb2ef1"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>
